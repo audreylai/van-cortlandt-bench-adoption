@@ -13,7 +13,7 @@ from flask import (
 )
 
 from . import db
-from .api import ADOPTION_OPTIONS, current_adoption
+from .api import ADOPTION_OPTIONS, adoption_end_date, current_adoption
 from .models import Adoption, AdoptionRequest, Bench
 
 admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -98,29 +98,19 @@ def bench_view(bench_id):
             return "This bench has no active adoption to edit.", 404
         adopter_name = request.form.get("adopter_name", "").strip()
         adopter_email = request.form.get("adopter_email", "").strip()
-        dedication = request.form.get("dedication", "").strip() or None
+        plaque_text = request.form.get("plaque_text", "").strip() or None
+        in_memory_name = request.form.get("in_memory_name", "").strip() or None
         show_name = request.form.get("show_name") == "on"
-        start_date = request.form.get("start_date")
-        end_date = request.form.get("end_date")
-        try:
-            parsed_start_date = date.fromisoformat(start_date)
-            parsed_end_date = date.fromisoformat(end_date)
-        except (TypeError, ValueError):
-            error = "Start and end dates must be valid dates."
+        if not adopter_name or not adopter_email:
+            error = "Adopter name and email are required."
+        elif plaque_text and len(plaque_text) > 300:
+            error = "Plaque text must be 300 characters or fewer."
         else:
-            if not adopter_name or not adopter_email:
-                error = "Adopter name and email are required."
-            elif dedication and len(dedication) > 150:
-                error = "Dedication must be 150 characters or fewer."
-            elif parsed_end_date < parsed_start_date:
-                error = "End date must be on or after the start date."
-            else:
                 adoption.adopter_name = adopter_name
                 adoption.adopter_email = adopter_email
-                adoption.dedication = dedication
+                adoption.plaque_text = plaque_text
+                adoption.in_memory_name = in_memory_name
                 adoption.show_name = show_name
-                adoption.start_date = parsed_start_date
-                adoption.end_date = parsed_end_date
                 db.session.commit()
                 return redirect(url_for("admin.bench_view", bench_id=bench_id))
 
@@ -131,25 +121,42 @@ def bench_view(bench_id):
 @admin_required
 def request_view(request_id):
     adoption_request = AdoptionRequest.query.get_or_404(request_id)
+    related_requests = []
+    if adoption_request.bench_id:
+        related_requests = (
+            AdoptionRequest.query.filter(
+                AdoptionRequest.bench_id == adoption_request.bench_id,
+                AdoptionRequest.request_id != adoption_request.request_id,
+            )
+            .order_by(AdoptionRequest.requested_date.asc(), AdoptionRequest.request_id.asc())
+            .all()
+        )
     error = None
     if request.method == "POST":
         adopter_name = request.form.get("adopter_name", "").strip()
         adopter_email = request.form.get("adopter_email", "").strip()
-        dedication = request.form.get("dedication", "").strip() or None
+        plaque_text = request.form.get("plaque_text", "").strip() or None
+        in_memory_name = request.form.get("in_memory_name", "").strip() or None
         requested_location = "Parade Ground"
         if not adopter_name or not adopter_email:
             error = "Adopter name and email are required."
-        elif dedication and len(dedication) > 150:
-            error = "Dedication must be 150 characters or fewer."
+        elif plaque_text and len(plaque_text) > 300:
+            error = "Plaque text must be 300 characters or fewer."
         else:
             adoption_request.adopter_name = adopter_name
             adoption_request.adopter_email = adopter_email
-            adoption_request.dedication = dedication
+            adoption_request.plaque_text = plaque_text
+            adoption_request.in_memory_name = in_memory_name
             adoption_request.requested_location = requested_location
             db.session.commit()
             return redirect(url_for("admin.request_view", request_id=request_id))
 
-    return render_template("admin_request.html", adoption_request=adoption_request, error=error)
+    return render_template(
+        "admin_request.html",
+        adoption_request=adoption_request,
+        related_requests=related_requests,
+        error=error,
+    )
 
 
 @admin.post("/requests/<int:request_id>/approve")
@@ -178,11 +185,12 @@ def approve_request(request_id):
         adopter_name=adoption_request.adopter_name,
         adopter_email=adoption_request.adopter_email,
         adoption_type=adoption_request.adoption_type,
-        dedication=adoption_request.dedication,
+        plaque_text=adoption_request.plaque_text,
+        in_memory_name=adoption_request.in_memory_name,
         requested_location=adoption_request.requested_location,
         show_name=adoption_request.show_name,
         start_date=adoption_request.start_date,
-        end_date=adoption_request.end_date,
+        end_date=adoption_end_date(adoption_request.start_date, adoption_request.adoption_type),
     )
     db.session.add(adoption)
     db.session.delete(adoption_request)

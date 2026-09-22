@@ -89,7 +89,8 @@ def adopt_bench(bench_id):
     adopter_name = payload.get("adopter_name")
     adopter_email = payload.get("adopter_email")
     adoption_type = payload.get("adoption_type")
-    dedication = payload.get("dedication")
+    plaque_text = payload.get("plaque_text")
+    in_memory_name = payload.get("in_memory_name")
     show_name = payload.get("show_name", True)
     
     # form validation
@@ -102,8 +103,8 @@ def adopt_bench(bench_id):
     if adoption_type != "bench_adoption":
         return jsonify(error="Use the public adoption form for new bench requests"), 400
 
-    if dedication is not None and len(dedication) > 150:
-        return jsonify(error="dedication must be 150 characters or fewer"), 400
+    if plaque_text is not None and len(plaque_text) > 300:
+        return jsonify(error="plaque_text must be 300 characters or fewer"), 400
 
     if not isinstance(show_name, bool):
         return jsonify(error="show_name must be true or false"), 400
@@ -114,7 +115,8 @@ def adopt_bench(bench_id):
         adopter_name=adopter_name,
         adopter_email=adopter_email,
         adoption_type=adoption_type,
-        dedication=dedication,
+        plaque_text=plaque_text,
+        in_memory_name=in_memory_name,
         show_name=show_name,
         requested_date=date.today(),
         start_date=start_date,

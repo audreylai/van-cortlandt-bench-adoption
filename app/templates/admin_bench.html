@@ -23,12 +23,14 @@
       <label class="block text-sm font-medium">Adopter email
         <input name="adopter_email" type="email" value="{{ adoption.adopter_email }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
       </label>
-      <label class="block text-sm font-medium">Dedication
-        <textarea name="dedication" rows="3" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption.dedication or '' }}</textarea>
+      <label class="block text-sm font-medium">Plaque Text
+        <textarea name="plaque_text" rows="3" maxlength="300" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption.plaque_text or '' }}</textarea>
+      </label>
+      <label class="block text-sm font-medium">In memory of (optional)
+        <input name="in_memory_name" value="{{ adoption.in_memory_name or '' }}" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
       </label>
       <div class="grid gap-5 sm:grid-cols-2">
-        <label class="block text-sm font-medium">Start date<input name="start_date" type="date" value="{{ adoption.start_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2"></label>
-        <label class="block text-sm font-medium">End date<input name="end_date" type="date" value="{{ adoption.end_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2"></label>
+        <p class="text-sm text-ink/60">Term: 10 years (fixed)</p>
       </div>
       <label class="flex items-center gap-2 text-sm text-ink/80"><input type="checkbox" name="show_name" {% if adoption.show_name %}checked{% endif %} class="h-4 w-4 rounded accent-brass"> Show adopter name publicly</label>
       <button type="submit" class="rounded-full bg-brass px-5 py-3 font-medium text-ink hover:bg-brass/90">Save changes</button>

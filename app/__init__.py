@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
@@ -50,6 +50,23 @@ def ensure_request_date_column():
                     "ALTER TABLE adoption_requests ADD COLUMN requested_date DATE"
                 )
             )
+
+
+def ensure_adoption_content_columns():
+    for table in ("adoptions", "adoption_requests"):
+        columns = {column["name"] for column in inspect(db.engine).get_columns(table)}
+        with db.engine.begin() as connection:
+            if "plaque_text" not in columns:
+                connection.execute(text(f"ALTER TABLE {table} ADD COLUMN plaque_text TEXT"))
+            if "in_memory_name" not in columns:
+                connection.execute(text(f"ALTER TABLE {table} ADD COLUMN in_memory_name TEXT"))
+            if "dedication" in columns:
+                connection.execute(
+                    text(
+                        f"UPDATE {table} SET plaque_text = dedication "
+                        "WHERE plaque_text IS NULL AND dedication IS NOT NULL"
+                    )
+                )
             connection.execute(
                 text(
                     "UPDATE adoption_requests SET requested_date = CURRENT_DATE "
@@ -71,9 +88,10 @@ def migrate_legacy_adoption_requests():
         connection.execute(
             text(
                 "INSERT INTO adoption_requests "
-                "(bench_id, adopter_name, adopter_email, adoption_type, dedication, "
-                "requested_location, show_name, start_date, end_date) "
-                "SELECT bench_id, adopter_name, adopter_email, adoption_type, dedication, "
+                "(bench_id, adopter_name, adopter_email, adoption_type, plaque_text, "
+                "in_memory_name, requested_location, show_name, start_date, end_date) "
+                "SELECT bench_id, adopter_name, adopter_email, adoption_type, plaque_text, "
+                "in_memory_name, "
                 f"{requested_location}, show_name, start_date, end_date "
                 "FROM adoptions WHERE approved = FALSE"
             )
@@ -111,8 +129,13 @@ def create_app(config_class=Config):
         ensure_adoption_approval_column()
         ensure_adoption_request_columns()
         ensure_request_date_column()
+        ensure_adoption_content_columns()
         migrate_legacy_adoption_requests()
         normalize_bench_codes()
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("404.html"), 404
 
     return app
 

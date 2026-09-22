@@ -66,13 +66,17 @@
           <input type="email" name="adopter_email" required class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 focus:border-brass focus:outline-none">
         </label>
         <label class="block">
-          <span class="text-sm font-medium text-ink/80">Dedication</span>
-          <textarea name="dedication" rows="3" maxlength="150" placeholder="In memory of..." class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 focus:border-brass focus:outline-none"></textarea>
-          <span class="mt-1 block text-xs text-ink/50">Up to 150 characters.</span>
+          <span class="text-sm font-medium text-ink/80">Plaque Text</span>
+          <textarea name="plaque_text" rows="3" maxlength="300" placeholder="In memory of..." required class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2"></textarea>
+          <span class="mt-1 block text-xs text-ink/50">Up to 300 characters, spread over 7 lines of text.</span>
+        </label>
+        <label class="block">
+          <span class="text-sm font-medium text-ink/80">In memory of <span class="font-normal text-ink/50">(optional)</span></span>
+          <input type="text" name="in_memory_name" maxlength="150" class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2">
         </label>
         <label class="flex items-center gap-2 text-sm text-ink/80">
           <input type="checkbox" name="show_name" checked class="h-4 w-4 rounded accent-brass">
-          Show my name publicly if the request is approved
+          Show my name publicly on the website if the request is approved
         </label>
       </div>
     </section>

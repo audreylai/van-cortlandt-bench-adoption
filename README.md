@@ -3,11 +3,13 @@
 A Flask application for browsing Van Cortlandt Park benches, submitting adoption requests, and managing requests through an authenticated admin dashboard.
 
 ## Features
-
+### Public user
 - Browse all benches and see whether each is available or actively adopted.
 - Search and filter the public bench directory by code, zone, and status.
 - Submit a request to adopt an existing bench.
 - Submit a request for a new bench installation in Parade Ground.
+
+### Admin
 - Hold requests for admin review before they become active adoptions.
 - Manage active adoptions and pending requests from the admin dashboard.
 - Approve or delete requests, including duplicate requests for the same bench.

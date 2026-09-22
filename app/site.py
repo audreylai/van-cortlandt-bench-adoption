@@ -32,7 +32,8 @@ def view_bench(bench):
         view.update(
             donor_name=adoption.adopter_name,
             donor=adoption.adopter_name,
-            dedication=adoption.dedication,
+            plaque_text=adoption.plaque_text,
+            in_memory_name=adoption.in_memory_name,
             show_name=adoption.show_name,
             start_date=adoption.start_date.strftime("%b %Y"),
             end_date=adoption.end_date.strftime("%b %Y"),
@@ -106,7 +107,8 @@ def submit_adoption():
 
     adopter_name = request.form.get("adopter_name")
     adopter_email = request.form.get("adopter_email")
-    dedication = request.form.get("dedication") or None
+    plaque_text = request.form.get("plaque_text") or None
+    in_memory_name = request.form.get("in_memory_name") or None
     requested_location = "Parade Ground" if adoption_type == "new_bench" else None
     show_name = request.form.get("show_name") == "on"
 
@@ -121,7 +123,8 @@ def submit_adoption():
         adopter_name=adopter_name,
         adopter_email=adopter_email,
         adoption_type=adoption_type,
-        dedication=dedication,
+        plaque_text=plaque_text,
+        in_memory_name=in_memory_name,
         requested_location=requested_location,
         show_name=show_name,
         requested_date=date.today(),

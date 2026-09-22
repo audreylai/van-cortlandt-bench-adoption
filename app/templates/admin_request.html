@@ -16,7 +16,8 @@
       {% if not adoption_request.bench %}
       <p class="rounded-lg bg-fog px-4 py-3 text-sm text-ink/70">New benches are installed in Parade Ground.</p>
       {% endif %}
-      <label class="block text-sm font-medium">Dedication<textarea name="dedication" rows="3" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption_request.dedication or '' }}</textarea></label>
+      <label class="block text-sm font-medium">Plaque Text<textarea name="plaque_text" rows="3" maxlength="300" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption_request.plaque_text or '' }}</textarea></label>
+      <label class="block text-sm font-medium">In memory of (optional)<input name="in_memory_name" value="{{ adoption_request.in_memory_name or '' }}" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2"></label>
       <div class="flex flex-wrap gap-3 pt-3">
         <button type="submit" class="rounded-full bg-brass px-5 py-3 font-medium text-ink hover:bg-brass/90">Save changes</button>
         {% if adoption_request.bench %}
@@ -31,6 +32,22 @@
     </form>
   </div>
 </div>
+
+{% if related_requests %}
+<div class="mx-auto max-w-3xl px-4 pb-10 sm:px-6 lg:px-8">
+  <section class="rounded-2xl border border-ink/10 bg-paper p-6 sm:p-8">
+    <h2 class="font-serif text-2xl font-semibold">Other pending requests for this bench</h2>
+    <div class="mt-4 divide-y divide-ink/10">
+      {% for related in related_requests %}
+      <a href="{{ url_for('admin.request_view', request_id=related.request_id) }}" class="flex items-center justify-between gap-4 py-3 hover:text-moss">
+        <span><strong>REQ-{{ "%04d"|format(related.request_id) }}</strong> · {{ related.adopter_name }} · {{ related.adopter_email }}</span>
+        <span class="text-sm text-ink/50">{{ related.requested_date.strftime('%b %-d, %Y') }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endif %}
 
 {% if adoption_request.bench %}
 <dialog id="approve-dialog" class="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-ink/10 bg-paper p-0 text-ink shadow-xl backdrop:bg-ink/40">
