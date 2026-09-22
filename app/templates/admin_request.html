@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Adoption request · Admin{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+  <a href="{{ url_for('admin.index') }}" class="text-sm text-ink/50 hover:text-ink">Back to dashboard</a>
+  <div class="mt-8 rounded-2xl border border-ink/10 bg-paper p-6 sm:p-8">
+    <p class="text-sm font-medium text-moss">Pending adoption request</p>
+    <h1 class="mt-1 font-serif text-3xl font-semibold">REQ-{{ "%04d"|format(adoption_request.request_id) }}</h1>
+    <p class="mt-2 text-ink/60">{{ adoption_request.bench.code if adoption_request.bench else 'New bench installation' }}</p>
+    <p class="mt-1 text-sm text-ink/50">Requested {{ adoption_request.requested_date.strftime('%b %-d, %Y') }}</p>
+    {% if error %}<p class="mt-6 rounded-lg bg-plaque/10 px-4 py-3 text-sm text-plaque" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" class="mt-8 space-y-5">
+      <label class="block text-sm font-medium">Adopter name<input name="adopter_name" value="{{ adoption_request.adopter_name }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2"></label>
+      <label class="block text-sm font-medium">Adopter email<input name="adopter_email" type="email" value="{{ adoption_request.adopter_email }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2"></label>
+      {% if not adoption_request.bench %}
+      <p class="rounded-lg bg-fog px-4 py-3 text-sm text-ink/70">New benches are installed in Parade Ground.</p>
+      {% endif %}
+      <label class="block text-sm font-medium">Dedication<textarea name="dedication" rows="3" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption_request.dedication or '' }}</textarea></label>
+      <div class="flex flex-wrap gap-3 pt-3">
+        <button type="submit" class="rounded-full bg-brass px-5 py-3 font-medium text-ink hover:bg-brass/90">Save changes</button>
+        {% if adoption_request.bench %}
+        <button type="button" id="open-approve-dialog" class="rounded-full bg-leaf px-5 py-3 font-medium text-ink hover:bg-leaf/90">Approve request</button>
+        {% else %}
+        <button type="submit" formaction="{{ url_for('admin.approve_request', request_id=adoption_request.request_id) }}" class="rounded-full bg-leaf px-5 py-3 font-medium text-ink hover:bg-leaf/90">Approve request</button>
+        {% endif %}
+      </div>
+    </form>
+    <form method="post" action="{{ url_for('admin.delete_request', request_id=adoption_request.request_id) }}" class="mt-8 border-t border-ink/10 pt-6">
+      <button type="submit" class="text-sm font-medium text-plaque hover:underline">Delete this request</button>
+    </form>
+  </div>
+</div>
+
+{% if adoption_request.bench %}
+<dialog id="approve-dialog" class="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-ink/10 bg-paper p-0 text-ink shadow-xl backdrop:bg-ink/40">
+  <form method="post" action="{{ url_for('admin.approve_request', request_id=adoption_request.request_id) }}" class="p-6 sm:p-8">
+    <h2 class="font-serif text-2xl font-semibold">Approve this request?</h2>
+    <p class="mt-2 text-sm text-ink/70">Choose whether other adoption requests for bench {{ adoption_request.bench.code }} should remain in the system.</p>
+    <label class="mt-6 flex items-start gap-3 rounded-xl border border-ink/10 bg-fog p-4 text-sm">
+      <input type="checkbox" name="delete_other_requests" class="mt-0.5 h-4 w-4 rounded accent-brass">
+      <span>
+        <span class="font-medium">Delete all other requests for this bench</span>
+        <span class="mt-1 block text-ink/60">This cannot be undone.</span>
+      </span>
+    </label>
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" id="cancel-approve-dialog" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-medium hover:border-ink/40">Cancel</button>
+      <button type="submit" class="rounded-full bg-leaf px-4 py-2 text-sm font-medium text-ink hover:bg-leaf/90">Approve request</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.querySelector('#approve-dialog');
+    const openButton = document.querySelector('#open-approve-dialog');
+    const cancelButton = document.querySelector('#cancel-approve-dialog');
+
+    openButton.addEventListener('click', () => dialog.showModal());
+    cancelButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

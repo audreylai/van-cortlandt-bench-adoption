@@ -1,45 +1,61 @@
 {% extends "base.html" %}
-{% block title %}Adopt {{ bench.code if bench is defined else 'VCP-0142' }} · Van Cortlandt Bench Adoption{% endblock %}
+{% block title %}Adopt a bench · Van Cortlandt Bench Adoption{% endblock %}
 
 {% block content %}
-
-{% set terms = [
-  {'type': 'Bench Adoption', 'value': 'bench_adoption', 'price': '$3,500'},
-  {'type': 'Install a new bench', 'value': 'new_bench', 'price': '$5,500 and up'},
-] %}
-
 <nav class="mx-auto max-w-2xl px-4 pt-8 text-sm text-ink/50 sm:px-6 lg:px-8">
   <a href="/" class="hover:text-ink">Home</a>
   <span class="mx-2">/</span>
-  <a href="/bench/{{ bench.id }}" class="hover:text-ink">{{ bench.code }}</a>
-  <span class="mx-2">/</span>
-  <span class="text-ink">Adopt</span>
+  <span class="text-ink">Adopt a bench</span>
 </nav>
 
 <div class="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-  <h1 class="font-serif text-3xl font-semibold sm:text-4xl">Adopt {{ bench.code }}</h1>
-  <p class="mt-1 text-ink/60">{{ bench.zone }}</p>
-  <p class="mt-2 text-ink/70">Support Van Cortlandt Park with a bench dedication.</p>
+  <h1 class="font-serif text-3xl font-semibold sm:text-4xl">Adopt a bench</h1>
+  <p class="mt-2 text-ink/70">Choose an available bench or request installation of a new one.</p>
+  {% if requested_bench_adopted %}
+  <p class="mt-6 rounded-lg bg-plaque/10 px-4 py-3 text-sm text-plaque" role="status">
+    Bench {{ requested_bench.code }} is already adopted. Please choose another available bench.
+  </p>
+  {% endif %}
 
-  <form action="{{ url_for('site.submit_adoption', bench_id=bench.id) }}" method="post" class="mt-10 space-y-10">
-
+  <form action="{{ url_for('site.submit_adoption') }}" method="post" class="mt-10 space-y-10">
     <section>
       <h2 class="font-serif text-lg font-semibold">1. Choose an adoption option</h2>
       <div class="mt-4 space-y-3">
-        {% for t in terms %}
-        <label class="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-ink/15 bg-paper px-4 py-3 hover:border-brass/60">
-          <span class="flex items-center gap-3">
-            <input type="radio" name="adoption_type" value="{{ t.value }}" class="h-4 w-4 accent-brass" {% if loop.first %}checked{% endif %}>
-            <span class="font-medium">{{ t.type }}</span>
+        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-ink/15 bg-paper px-4 py-3 hover:border-brass/60">
+          <input type="radio" name="adoption_type" value="bench_adoption" class="adoption-type mt-1 h-4 w-4 accent-brass" checked>
+          <span>
+            <span class="font-medium">Adopt an existing bench</span>
+            <span class="mt-1 block text-sm text-ink/60">$3,500 · 10-year term</span>
           </span>
-          <span class="text-right text-sm text-ink/60">{{ t.price }}<br>10-year term</span>
         </label>
-        {% endfor %}
+        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-ink/15 bg-paper px-4 py-3 hover:border-brass/60">
+          <input type="radio" name="adoption_type" value="new_bench" class="adoption-type mt-1 h-4 w-4 accent-brass">
+          <span>
+            <span class="font-medium">Request a new bench</span>
+            <span class="mt-1 block text-sm text-ink/60">$5,500 and up · 10-year term</span>
+          </span>
+        </label>
       </div>
     </section>
 
+    <section id="bench-selection">
+      <h2 class="font-serif text-lg font-semibold">2. Select a bench</h2>
+      <label class="mt-4 block">
+        <span class="text-sm font-medium text-ink/80">Available bench</span>
+        <select name="bench_id" id="bench-id" required class="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2 focus:border-brass focus:outline-none">
+          <option value="">Choose a bench</option>
+          {% for bench in benches %}
+          <option value="{{ bench.bench_id }}" {% if selected_bench_id == bench.bench_id %}selected{% endif %}>
+            {{ bench.code }} · {{ bench.location }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+    </section>
+    <p id="new-bench-note" class="hidden text-sm text-ink/60">New benches are installed in Parade Ground.</p>
+
     <section>
-      <h2 class="font-serif text-lg font-semibold">2. Your details</h2>
+      <h2 class="font-serif text-lg font-semibold">3. Your details</h2>
       <div class="mt-4 space-y-4">
         <label class="block">
           <span class="text-sm font-medium text-ink/80">Name</span>
@@ -51,22 +67,38 @@
         </label>
         <label class="block">
           <span class="text-sm font-medium text-ink/80">Dedication</span>
-          <textarea name="dedication" rows="3" maxlength="150" placeholder="In memory of..."
-                    class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 focus:border-brass focus:outline-none"></textarea>
-          <span class="mt-1 block text-xs text-ink/50">Up to 150 characters. Appears on the bench's page.</span>
+          <textarea name="dedication" rows="3" maxlength="150" placeholder="In memory of..." class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 focus:border-brass focus:outline-none"></textarea>
+          <span class="mt-1 block text-xs text-ink/50">Up to 150 characters.</span>
         </label>
         <label class="flex items-center gap-2 text-sm text-ink/80">
           <input type="checkbox" name="show_name" checked class="h-4 w-4 rounded accent-brass">
-          Show my name publicly on this bench's page
+          Show my name publicly if the request is approved
         </label>
       </div>
     </section>
 
-    <button type="submit" class="w-full rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">
-      Complete adoption
-    </button>
-
+    <button type="submit" class="w-full rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">Submit adoption request</button>
   </form>
 </div>
 
+<script>
+  (() => {
+    const options = document.querySelectorAll('.adoption-type');
+    const benchSelect = document.querySelector('#bench-id');
+    const benchSelection = document.querySelector('#bench-selection');
+    const newBenchNote = document.querySelector('#new-bench-note');
+
+    function updateSelection() {
+      const isNewBench = document.querySelector('.adoption-type:checked').value === 'new_bench';
+      benchSelect.disabled = isNewBench;
+      benchSelect.required = !isNewBench;
+      benchSelection.hidden = isNewBench;
+      if (isNewBench) benchSelect.value = '';
+      newBenchNote.classList.toggle('hidden', !isNewBench);
+    }
+
+    options.forEach((option) => option.addEventListener('change', updateSelection));
+    updateSelection();
+  })();
+</script>
 {% endblock %}

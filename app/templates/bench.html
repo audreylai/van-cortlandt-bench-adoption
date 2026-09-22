@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ bench.code if bench is defined else 'VCP-0142' }} · Van Cortlandt Bench Adoption{% endblock %}
+{% block title %}{{ bench.code if bench is defined else '0142' }} · Van Cortlandt Bench Adoption{% endblock %}
 
 {% block content %}
 
@@ -62,7 +62,7 @@
       </div>
       {% else %}
       <p class="mt-6 text-ink/70">This bench doesn't have a sponsor yet. Adopt it to add a dedication and support the park.</p>
-      <a href="/bench/{{ bench.id }}/adopt"
+      <a href="{{ url_for('site.adopt_bench', bench_id=bench.id) }}"
          class="mt-6 inline-block rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">
         Adopt this bench
       </a>

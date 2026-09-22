@@ -1,17 +1,22 @@
-"""Populate the database with sample Van Cortlandt Park bench data.
+"""
+FOR DEVELOPMENT PURPOSES ONLY. Do not use in production. A more advanced data import/export tool should be used for production data management.
+Populate the database with sample Van Cortlandt Park bench data. 
+
 
 Run from the project root with ``python seed.py``.
+
 """
 
 from datetime import date
 
 from app import create_app, db
-from app.models import Adoption, Bench
+from app.api import adoption_end_date
+from app.models import Adoption, AdoptionRequest, Bench
 
 
 BENCHES = [
 	{
-		"code": "VCP-0142",
+		"code": "0142",
 		"location": "Parade Ground",
 		"bench_type": "World's Fair",
 		"dedication": "In memory of John Doe",
@@ -22,7 +27,7 @@ BENCHES = [
 		"end_date": date(2027, 1, 14),
 	},
 	{
-		"code": "VCP-0087",
+		"code": "0087",
 		"location": "Vault Hill",
 		"bench_type": "Concrete base",
   		"dedication": "In memory of Jane Doe",
@@ -33,7 +38,7 @@ BENCHES = [
 		"end_date": date(2026, 8, 31),
 	},
 	{
-		"code": "VCP-0216",
+		"code": "0216",
 		"location": "Golf House",
 		"bench_type": "Concrete base",
 		"dedication": "In memory of Robert Brown",
@@ -44,12 +49,12 @@ BENCHES = [
 		"end_date": date(2027, 3, 19),
 	},
 	{
-		"code": "VCP-0304",
+		"code": "0304",
 		"location": "Nature Center",
 		"bench_type": "World's Fair",
 	},
 	{
-		"code": "VCP-0411",
+		"code": "0411",
 		"location": "Croton Woods",
 		"bench_type": "Concrete base",
 	},
@@ -69,7 +74,7 @@ LOCATIONS = [
 existing_codes = {bench["code"] for bench in BENCHES}
 candidate_number = 1
 while len(BENCHES) < 500:
-	code = f"VCP-{candidate_number:04d}"
+	code = f"{candidate_number:04d}"
 	candidate_number += 1
 	if code in existing_codes:
 		continue
@@ -88,6 +93,7 @@ def seed() -> None:
 	app = create_app()
 	with app.app_context():
 		db.create_all()
+		db.session.query(AdoptionRequest).delete()
 		db.session.query(Adoption).delete()
 		db.session.query(Bench).delete()
 
@@ -106,15 +112,56 @@ def seed() -> None:
 						adopter_email=data["adopter_email"],
 						adoption_type=data["adoption_type"],
 						dedication=data.get("dedication"),
-						approved=True,
 						start_date=data["start_date"],
 						end_date=data["end_date"],
-						dedication=data["dedication"],
 					)
 				)
 
 		db.session.commit()
-		print(f"Seeded {len(BENCHES)} benches.")
+
+		# Add 200 pending requests, including duplicate requests for the same benches.
+		seeded_benches = Bench.query.order_by(Bench.bench_id).all()
+		request_date = date(2026, 9, 22)
+		request_number = 1
+
+		for duplicate_group in range(90):
+			bench = seeded_benches[duplicate_group + 5]
+			for duplicate_number in range(2):
+				adopter_name = f"Sample Adopter {request_number:03d}"
+				adoption_type = "bench_adoption"
+				db.session.add(
+					AdoptionRequest(
+						bench=bench,
+						adopter_name=adopter_name,
+						adopter_email=f"adopter{request_number:03d}@example.com",
+						adoption_type=adoption_type,
+						dedication=f"In honor of {adopter_name}",
+						show_name=request_number % 4 != 0,
+						requested_date=request_date,
+						start_date=request_date,
+						end_date=adoption_end_date(request_date, adoption_type),
+					)
+				)
+				request_number += 1
+
+		for new_bench_number in range(20):
+			adoption_type = "new_bench"
+			db.session.add(
+				AdoptionRequest(
+					adopter_name=f"New Bench Sponsor {new_bench_number + 1:02d}",
+					adopter_email=f"newbench{new_bench_number + 1:02d}@example.com",
+					adoption_type=adoption_type,
+					dedication="A new place to rest in Van Cortlandt Park",
+					requested_location="Parade Ground",
+					show_name=True,
+					requested_date=request_date,
+					start_date=request_date,
+					end_date=adoption_end_date(request_date, adoption_type),
+				)
+			)
+
+		db.session.commit()
+		print(f"Seeded {len(BENCHES)} benches and {request_number + 19} adoption requests.")
 
 
 if __name__ == "__main__":

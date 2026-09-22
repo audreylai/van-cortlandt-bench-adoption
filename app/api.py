@@ -1,10 +1,10 @@
 import calendar
-from datetime import date
+from datetime import date, timedelta
 
 from flask import Blueprint, jsonify, request
 
 from . import db
-from .models import Adoption, Bench
+from .models import AdoptionRequest, Bench
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
@@ -24,13 +24,17 @@ def add_months(start_date, months):
     return date(year, month, day)
 
 
+def adoption_end_date(start_date, adoption_type):
+    return add_months(start_date, ADOPTION_TERM_MONTHS) - timedelta(days=1)
+
+
 def current_adoption(bench):
     today = date.today()
     return next(
         (
             adoption
             for adoption in bench.adoptions
-            if adoption.approved and adoption.end_date >= today
+            if adoption.end_date >= today
         ),
         None,
     )
@@ -95,8 +99,8 @@ def adopt_bench(bench_id):
     if not adopter_name or not adopter_email:
         return jsonify(error="adopter_name and adopter_email are required"), 400
 
-    if adoption_type not in ADOPTION_OPTIONS:
-        return jsonify(error="adoption_type must be bench_adoption or new_bench"), 400
+    if adoption_type != "bench_adoption":
+        return jsonify(error="Use the public adoption form for new bench requests"), 400
 
     if dedication is not None and len(dedication) > 150:
         return jsonify(error="dedication must be 150 characters or fewer"), 400
@@ -105,16 +109,16 @@ def adopt_bench(bench_id):
         return jsonify(error="show_name must be true or false"), 400
 
     start_date = date.today()
-    adoption = Adoption(
+    adoption = AdoptionRequest(
         bench=bench_record,
         adopter_name=adopter_name,
         adopter_email=adopter_email,
         adoption_type=adoption_type,
         dedication=dedication,
         show_name=show_name,
-        approved=False,
+        requested_date=date.today(),
         start_date=start_date,
-        end_date=add_months(start_date, ADOPTION_TERM_MONTHS),
+        end_date=adoption_end_date(start_date, adoption_type),
     )
     db.session.add(adoption)
     db.session.commit()
