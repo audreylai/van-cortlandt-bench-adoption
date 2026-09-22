@@ -93,7 +93,6 @@ def adopt_bench(bench_id):
     plaque_text = payload.get("plaque_text")
     in_memory_name = payload.get("in_memory_name")
     show_name = payload.get("show_name", True)
-    plaque_timing_acknowledged = payload.get("plaque_timing_acknowledged", False)
     
     # form validation
     if isinstance(show_name, str):
@@ -110,11 +109,6 @@ def adopt_bench(bench_id):
 
     if not isinstance(show_name, bool):
         return jsonify(error="show_name must be true or false"), 400
-
-    if isinstance(plaque_timing_acknowledged, str):
-        plaque_timing_acknowledged = plaque_timing_acknowledged.lower() in {"1", "true", "on", "yes"}
-    if not plaque_timing_acknowledged:
-        return jsonify(error="plaque_timing_acknowledged is required"), 400
 
     duplicate_active = Adoption.query.filter(
         Adoption.bench_id == bench_record.bench_id,
@@ -136,7 +130,6 @@ def adopt_bench(bench_id):
         plaque_text=plaque_text,
         in_memory_name=in_memory_name,
         show_name=show_name,
-        plaque_timing_acknowledged=plaque_timing_acknowledged,
         requested_date=date.today(),
         start_date=start_date,
         end_date=adoption_end_date(start_date, adoption_type),

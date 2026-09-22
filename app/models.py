@@ -68,9 +68,6 @@ class AdoptionRequest(db.Model):
     in_memory_name = db.Column(db.Text)
     requested_location = db.Column(db.Text)
     show_name = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
-    plaque_timing_acknowledged = db.Column(
-        db.Boolean, nullable=False, default=False, server_default="false"
-    )
     requested_date = db.Column(db.Date, nullable=False, default=date.today)
     start_date = db.Column(db.Date, nullable=False, default=date.today)
     end_date = db.Column(db.Date, nullable=False)

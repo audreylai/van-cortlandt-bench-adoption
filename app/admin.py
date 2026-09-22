@@ -189,7 +189,6 @@ def approve_request(request_id):
         in_memory_name=adoption_request.in_memory_name,
         requested_location=adoption_request.requested_location,
         show_name=adoption_request.show_name,
-        plaque_timing_acknowledged=adoption_request.plaque_timing_acknowledged,
         start_date=adoption_request.start_date,
         end_date=adoption_end_date(adoption_request.start_date, adoption_request.adoption_type),
     )

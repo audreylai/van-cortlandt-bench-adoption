@@ -136,9 +136,13 @@ def seed() -> None:
 						adopter_name=adopter_name,
 						adopter_email=f"adopter{request_number:03d}@example.com",
 						adoption_type=adoption_type,
-						dedication=f"In honor of {adopter_name}",
+						plaque_text=f"In honor of {adopter_name}",
+						in_memory_name=(
+							f"Memorial of {adopter_name}"
+							if request_number % 3 == 0
+							else None
+						),
 						show_name=request_number % 4 != 0,
-						plaque_timing_acknowledged=True,
 						requested_date=request_date,
 						start_date=request_date,
 						end_date=adoption_end_date(request_date, adoption_type),
@@ -153,10 +157,10 @@ def seed() -> None:
 					adopter_name=f"New Bench Sponsor {new_bench_number + 1:02d}",
 					adopter_email=f"newbench{new_bench_number + 1:02d}@example.com",
 					adoption_type=adoption_type,
-					dedication="A new place to rest in Van Cortlandt Park",
+					plaque_text="A new place to rest in Van Cortlandt Park",
+					in_memory_name=None,
 					requested_location="Parade Ground",
 					show_name=True,
-					plaque_timing_acknowledged=True,
 					requested_date=request_date,
 					start_date=request_date,
 					end_date=adoption_end_date(request_date, adoption_type),

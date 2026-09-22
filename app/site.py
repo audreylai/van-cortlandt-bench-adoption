@@ -105,7 +105,6 @@ def submit_adoption():
     in_memory_name = request.form.get("in_memory_name") or None
     requested_location = "Parade Ground" if adoption_type == "new_bench" else None
     show_name = request.form.get("show_name") == "on"
-    plaque_timing_acknowledged = request.form.get("plaque_timing_acknowledged") == "on"
 
 	# basic form validation
     if not adopter_name or not adopter_email:
@@ -123,9 +122,6 @@ def submit_adoption():
         ).first()
         if duplicate_active or duplicate_request:
             return "This email is already associated with a request for this bench.", 409
-    if not plaque_timing_acknowledged:
-        return "Please acknowledge the 6-8 week plaque timeline before submitting.", 400
-
     adoption = AdoptionRequest(
         bench=bench_record,
         adopter_name=adopter_name,
@@ -135,7 +131,6 @@ def submit_adoption():
         in_memory_name=in_memory_name,
         requested_location=requested_location,
         show_name=show_name,
-        plaque_timing_acknowledged=plaque_timing_acknowledged,
         requested_date=date.today(),
         start_date=date.today(),
         end_date=adoption_end_date(date.today(), adoption_type),
