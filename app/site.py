@@ -1,12 +1,13 @@
 from datetime import date
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from . import db
 from .api import ADOPTION_OPTIONS, ADOPTION_TERM_MONTHS, add_months, current_adoption
 from .models import Adoption, Bench
 
 site = Blueprint("site", __name__)
+CONFIRMATION_SESSION_KEY = "adoption_confirmation_id"
 
 
 def view_bench(bench):
@@ -95,6 +96,7 @@ def submit_adoption(bench_id):
     )
     db.session.add(adoption)
     db.session.commit()
+    session[CONFIRMATION_SESSION_KEY] = adoption.adoption_id
 
     return redirect(
         url_for("site.adoption_confirmation", adoption_id=adoption.adoption_id),
@@ -105,6 +107,9 @@ def submit_adoption(bench_id):
 @site.get("/adoption/confirmation/<int:adoption_id>")
 def adoption_confirmation(adoption_id):
     adoption = db.get_or_404(Adoption, adoption_id)
+    if session.pop(CONFIRMATION_SESSION_KEY, None) != adoption_id:
+        return redirect(url_for("site.bench", bench_id=adoption.bench_id))
+
     return render_template(
         "adopt_confirmation.html",
         adoption=adoption,

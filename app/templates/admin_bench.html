@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ bench.code }} · Admin · Van Cortlandt Bench Adoption{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+  <nav class="text-sm text-ink/50">
+    <a href="{{ url_for('admin.index') }}" class="hover:text-ink">Dashboard</a>
+    <span class="mx-2">/</span>
+    <span class="text-ink">{{ bench.code }}</span>
+  </nav>
+
+  <div class="mt-8 flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <p class="text-sm font-medium text-moss">Admin bench view</p>
+      <h1 class="mt-1 font-serif text-4xl font-semibold">{{ bench.code }}</h1>
+      <p class="mt-2 text-ink/60">{{ bench.location }} · {{ bench.bench_type }}</p>
+    </div>
+    <a href="{{ url_for('admin.index') }}" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-medium hover:border-ink/40">
+      Back to dashboard
+    </a>
+  </div>
+
+  {% if adoption %}
+  <section class="mt-10 rounded-2xl border border-ink/10 bg-paper p-6 sm:p-8">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold">Adoption request</h2>
+        <p class="mt-1 text-sm text-ink/60">
+          {% if adoption.approved %}Approved{% else %}Pending approval{% endif %}
+        </p>
+      </div>
+      {% if not adoption.approved %}
+      <button type="button" id="open-approve-dialog" class="rounded-full bg-leaf px-4 py-2 text-sm font-medium text-ink hover:bg-leaf/90">
+        Approve request
+      </button>
+      {% endif %}
+    </div>
+
+    {% if error %}
+    <p class="mt-6 rounded-lg bg-plaque/10 px-4 py-3 text-sm text-plaque" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('admin.bench_view', bench_id=bench.bench_id, adoption_id=adoption.adoption_id) }}" class="mt-8 space-y-5">
+      <label class="block text-sm font-medium">
+        Adoption option
+        <select name="adoption_type" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+          <option value="bench_adoption" {% if adoption.adoption_type == 'bench_adoption' %}selected{% endif %}>Bench adoption</option>
+          <option value="new_bench" {% if adoption.adoption_type == 'new_bench' %}selected{% endif %}>Install a new bench</option>
+        </select>
+      </label>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="block text-sm font-medium">
+          Adopter name
+          <input name="adopter_name" value="{{ adoption.adopter_name }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
+        <label class="block text-sm font-medium">
+          Adopter email
+          <input name="adopter_email" type="email" value="{{ adoption.adopter_email }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
+      </div>
+      <label class="block text-sm font-medium">
+        Dedication
+        <textarea name="dedication" rows="3" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">{{ adoption.dedication or '' }}</textarea>
+      </label>
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="block text-sm font-medium">
+          Start date
+          <input name="start_date" type="date" value="{{ adoption.start_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
+        <label class="block text-sm font-medium">
+          End date
+          <input name="end_date" type="date" value="{{ adoption.end_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
+      </div>
+      <label class="flex items-center gap-2 text-sm text-ink/80">
+        <input type="checkbox" name="show_name" {% if adoption.show_name %}checked{% endif %} class="h-4 w-4 rounded accent-brass">
+        Show adopter name publicly
+      </label>
+      <button type="submit" class="rounded-full bg-brass px-5 py-3 font-medium text-ink hover:bg-brass/90">
+        Save changes
+      </button>
+    </form>
+
+    <form method="post" action="{{ url_for('admin.delete_adoption', adoption_id=adoption.adoption_id) }}" class="mt-8 border-t border-ink/10 pt-6">
+      <button type="submit" class="text-sm font-medium text-plaque hover:underline">
+        Delete this adoption request
+      </button>
+    </form>
+  </section>
+  {% else %}
+  <p class="mt-10 rounded-2xl border border-ink/10 bg-paper px-6 py-8 text-ink/60">This bench has no adoption requests.</p>
+  {% endif %}
+</div>
+
+{% if adoption and not adoption.approved %}
+<dialog id="approve-dialog" class="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-ink/10 bg-paper p-0 text-ink shadow-xl backdrop:bg-ink/40">
+  <form method="post" action="{{ url_for('admin.approve_adoption', adoption_id=adoption.adoption_id) }}" class="p-6 sm:p-8">
+    <h2 class="font-serif text-2xl font-semibold">Approve this request?</h2>
+    <p class="mt-2 text-sm text-ink/70">Choose whether other requests for {{ bench.code }} should remain in the system.</p>
+    <label class="mt-6 flex items-start gap-3 rounded-xl border border-ink/10 bg-fog p-4 text-sm">
+      <input type="checkbox" name="delete_other_requests" class="mt-0.5 h-4 w-4 rounded accent-brass">
+      <span>
+        <span class="font-medium">Delete all other requests for this bench</span>
+        <span class="mt-1 block text-ink/60">This cannot be undone.</span>
+      </span>
+    </label>
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" id="cancel-approve-dialog" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-medium hover:border-ink/40">
+        Cancel
+      </button>
+      <button type="submit" class="rounded-full bg-leaf px-4 py-2 text-sm font-medium text-ink hover:bg-leaf/90">
+        Approve request
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.querySelector('#approve-dialog');
+    const openButton = document.querySelector('#open-approve-dialog');
+    const cancelButton = document.querySelector('#cancel-approve-dialog');
+
+    openButton.addEventListener('click', () => dialog.showModal());
+    cancelButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

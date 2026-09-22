@@ -28,57 +28,151 @@
   </div>
 
   <section class="mt-10">
-    <div class="flex items-baseline justify-between gap-4">
-      <h2 class="font-serif text-2xl font-semibold">Pending approvals</h2>
-      <span class="text-sm text-ink/60">{{ pending_adoptions|length }} pending</span>
-    </div>
-    <div class="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-paper">
-      {% if pending_adoptions %}
-      <div class="divide-y divide-ink/10">
-        {% for adoption in pending_adoptions %}
-        <div class="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
-          <div>
-            <p class="font-medium">{{ adoption.adopter_name }}</p>
-            <p class="text-sm text-ink/60">
-              {{ adoption.bench.code }} · {{ adoption.adopter_email }}
-            </p>
-            {% if adoption.dedication %}
-            <p class="mt-1 text-sm italic text-ink/70">&ldquo;{{ adoption.dedication }}&rdquo;</p>
-            {% endif %}
-          </div>
-          <form method="post" action="{{ url_for('admin.approve_adoption', adoption_id=adoption.adoption_id) }}">
-            <button type="submit" class="rounded-full bg-brass px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-brass/90">
-              Approve
-            </button>
-          </form>
-        </div>
-        {% endfor %}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold sm:text-3xl">All benches</h2>
+        <p class="mt-2 text-ink/70">Review bench status and adoption requests.</p>
       </div>
-      {% else %}
-      <p class="px-5 py-6 text-ink/60">No adoptions are waiting for approval.</p>
-      {% endif %}
-    </div>
-  </section>
 
-  <section class="mt-10">
-    <h2 class="font-serif text-2xl font-semibold">Recent adoptions</h2>
-    <div class="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-paper">
-      {% if recent_adoptions %}
-      <div class="divide-y divide-ink/10">
-        {% for adoption in recent_adoptions %}
-        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <div>
-            <p class="font-medium">{{ adoption.adopter_name }}</p>
-            <p class="text-sm text-ink/60">{{ adoption.bench.code }} · {{ adoption.adoption_type|replace('_', ' ')|title }}</p>
-          </div>
-          <p class="text-sm text-ink/60">{{ adoption.start_date.strftime('%b %d, %Y') }}</p>
-        </div>
-        {% endfor %}
+      <div class="flex flex-wrap gap-3">
+        <input id="bench-search" type="search" placeholder="Search by code or zone"
+               class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm placeholder:text-ink/40 focus:border-brass focus:outline-none">
+        <select id="bench-zone" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+          <option value="all">All zones</option>
+          {% for zone in zones %}
+          <option value="{{ zone|lower|replace(' ', '-') }}">{{ zone }}</option>
+          {% endfor %}
+        </select>
+        <select id="bench-status" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+          <option value="all">All statuses</option>
+          <option value="pending">Pending approval</option>
+          <option value="available">Available</option>
+          <option value="adopted">Adopted</option>
+        </select>
       </div>
-      {% else %}
-      <p class="px-5 py-6 text-ink/60">No adoptions have been recorded yet.</p>
-      {% endif %}
+    </div>
+
+    <div class="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+      <table class="w-full min-w-[700px] text-left text-sm">
+        <thead class="border-b border-ink/10 text-ink/60">
+          <tr>
+            <th class="px-4 py-3 font-medium">Bench</th>
+            <th class="px-4 py-3 font-medium">Zone</th>
+            <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium">Sponsor / requester</th>
+            <th class="px-4 py-3 font-medium">Until</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ink/5">
+          {% for bench in benches %}
+          <tr class="bench-row hover:bg-fog/40"
+              data-code="{{ bench.code|lower }}"
+              data-zone="{{ bench.zone|lower|replace(' ', '-') }}"
+              data-status="{{ bench.status }}">
+            <td class="px-4 py-3 font-medium">{{ bench.code }}</td>
+            <td class="px-4 py-3 text-ink/70">{{ bench.zone }}</td>
+            <td class="px-4 py-3">
+              {% if bench.status == 'adopted' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-plaque/10 px-2.5 py-1 text-xs font-medium text-plaque">
+                <span class="h-1.5 w-1.5 rounded-full bg-plaque"></span>Adopted
+              </span>
+              {% elif bench.status == 'pending' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-brass/15 px-2.5 py-1 text-xs font-medium text-brass">
+                <span class="h-1.5 w-1.5 rounded-full bg-brass"></span>Pending
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-2.5 py-1 text-xs font-medium text-moss">
+                <span class="h-1.5 w-1.5 rounded-full bg-leaf"></span>Available
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-ink/70">{{ bench.sponsor or '—' }}</td>
+            <td class="px-4 py-3 text-ink/70">{{ bench.until or '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              {% if bench.adoption_id %}
+              <a href="{{ url_for('admin.bench_view', bench_id=bench.id, adoption_id=bench.adoption_id) }}" class="font-medium text-moss hover:underline">
+                {% if bench.status == 'pending' %}Review{% else %}Edit{% endif %}
+              </a>
+              {% else %}
+              <a href="{{ url_for('admin.bench_view', bench_id=bench.id) }}" class="font-medium text-moss hover:underline">View</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex flex-col gap-3 text-sm text-ink/60 sm:flex-row sm:items-center sm:justify-between">
+      <p id="bench-results" aria-live="polite"></p>
+      <div class="flex items-center gap-2">
+        <button id="previous-page" type="button" class="rounded-lg border border-ink/15 bg-white px-3 py-2 font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+        <span id="page-status" class="min-w-20 text-center"></span>
+        <button id="next-page" type="button" class="rounded-lg border border-ink/15 bg-white px-3 py-2 font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+      </div>
     </div>
   </section>
 </div>
+
+<script>
+  (() => {
+    const rows = Array.from(document.querySelectorAll('.bench-row'));
+    const searchInput = document.querySelector('#bench-search');
+    const zoneSelect = document.querySelector('#bench-zone');
+    const statusSelect = document.querySelector('#bench-status');
+    const previousButton = document.querySelector('#previous-page');
+    const nextButton = document.querySelector('#next-page');
+    const results = document.querySelector('#bench-results');
+    const pageStatus = document.querySelector('#page-status');
+    const pageSize = 25;
+    let currentPage = 1;
+
+    function filteredRows() {
+      const search = searchInput.value.trim().toLowerCase();
+      return rows.filter((row) => {
+        const matchesSearch = !search || row.dataset.code.includes(search) || row.dataset.zone.includes(search.replaceAll(' ', '-'));
+        const matchesZone = zoneSelect.value === 'all' || row.dataset.zone === zoneSelect.value;
+        const matchesStatus = statusSelect.value === 'all' || row.dataset.status === statusSelect.value;
+        return matchesSearch && matchesZone && matchesStatus;
+      });
+    }
+
+    function renderPage() {
+      const matchingRows = filteredRows();
+      const totalPages = Math.max(1, Math.ceil(matchingRows.length / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      const firstRow = (currentPage - 1) * pageSize;
+      const visibleRows = new Set(matchingRows.slice(firstRow, firstRow + pageSize));
+
+      rows.forEach((row) => {
+        row.hidden = !visibleRows.has(row);
+      });
+      results.textContent = `${matchingRows.length} bench${matchingRows.length === 1 ? '' : 'es'} shown`;
+      pageStatus.textContent = `Page ${currentPage} of ${totalPages}`;
+      previousButton.disabled = currentPage === 1;
+      nextButton.disabled = currentPage === totalPages;
+    }
+
+    [searchInput, zoneSelect, statusSelect].forEach((control) => {
+      control.addEventListener('input', () => {
+        currentPage = 1;
+        renderPage();
+      });
+      control.addEventListener('change', () => {
+        currentPage = 1;
+        renderPage();
+      });
+    });
+    previousButton.addEventListener('click', () => {
+      currentPage -= 1;
+      renderPage();
+    });
+    nextButton.addEventListener('click', () => {
+      currentPage += 1;
+      renderPage();
+    });
+    renderPage();
+  })();
+</script>
 {% endblock %}

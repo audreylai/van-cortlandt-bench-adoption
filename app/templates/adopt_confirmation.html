@@ -1,16 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Adoption confirmed · Van Cortlandt Bench Adoption{% endblock %}
+{% block title %}Adoption request · Van Cortlandt Bench Adoption{% endblock %}
 
 {% block content %}
 <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
   <div class="rounded-2xl border border-ink/10 bg-paper p-8 text-center shadow-sm">
     <p class="text-sm font-medium uppercase tracking-wide text-moss">Thank you</p>
-    <h1 class="mt-3 font-serif text-3xl font-semibold sm:text-4xl">Your adoption request is confirmed</h1>
+    {% if adoption.approved %}
+    <h1 class="mt-3 font-serif text-3xl font-semibold sm:text-4xl">Your adoption is confirmed</h1>
     <p class="mt-4 text-ink/70">
-      {{ bench.code }} at {{ bench.location }} has been reserved for {{ adoption.adopter_name }}.
+      Your adoption request has been approved for this bench.
     </p>
+    {% else %}
+    <h1 class="mt-3 font-serif text-3xl font-semibold sm:text-4xl">Your adoption request was received</h1>
+    <p class="mt-4 text-ink/70">
+      A staff member will review your request shortly. The adoption will appear publicly only after it is approved.
+    </p>
+    {% endif %}
 
     <dl class="mx-auto mt-8 max-w-sm space-y-3 text-left text-sm">
+      <div class="flex justify-between gap-4 border-b border-ink/10 pb-3">
+        <dt class="text-ink/60">Bench ID</dt>
+        <dd class="font-medium">{{ bench.code }}</dd>
+      </div>
       <div class="flex justify-between gap-4 border-b border-ink/10 pb-3">
         <dt class="text-ink/60">Option</dt>
         <dd class="font-medium">{{ adoption_option.label }}</dd>
