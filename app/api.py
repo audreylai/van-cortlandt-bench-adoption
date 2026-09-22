@@ -27,7 +27,11 @@ def add_months(start_date, months):
 def current_adoption(bench):
     today = date.today()
     return next(
-        (adoption for adoption in bench.adoptions if adoption.end_date >= today),
+        (
+            adoption
+            for adoption in bench.adoptions
+            if adoption.approved and adoption.end_date >= today
+        ),
         None,
     )
 
@@ -108,6 +112,7 @@ def adopt_bench(bench_id):
         adoption_type=adoption_type,
         dedication=dedication,
         show_name=show_name,
+        approved=False,
         start_date=start_date,
         end_date=add_months(start_date, ADOPTION_TERM_MONTHS),
     )

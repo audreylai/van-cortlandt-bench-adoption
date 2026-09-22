@@ -54,7 +54,9 @@
       {% if bench.status == 'adopted' %}
       <div class="mt-6 rounded-2xl bg-plaque px-6 py-6 text-fog shadow-lg">
         <p class="font-serif text-xl font-semibold">{{ bench.donor_name }}</p>
+        {% if bench.dedication %}
         <p class="mt-3 italic text-fog/85">&ldquo;{{ bench.dedication }}&rdquo;</p>
+        {% endif %}
         <p class="mt-4 text-sm text-fog/70">{{ bench.start_date }} &ndash; {{ bench.end_date }}</p>
         <p class="text-sm text-fog/70">{{ bench.days_left }} days remaining</p>
       </div>

@@ -2,7 +2,6 @@ from datetime import date
 
 from . import db
 
-
 class Bench(db.Model):
     __tablename__ = "benches"
     __table_args__ = (
@@ -41,6 +40,9 @@ class Adoption(db.Model):
     adoption_type = db.Column(db.Text, nullable=False)
     dedication = db.Column(db.Text)
     show_name = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    approved = db.Column(
+        db.Boolean, nullable=False, default=False, server_default="false"
+    )
     start_date = db.Column(db.Date, nullable=False, default=date.today)
     end_date = db.Column(db.Date, nullable=False)
     bench = db.relationship("Bench", back_populates="adoptions")

@@ -58,7 +58,12 @@
       <div class="hidden items-center gap-8 text-sm lg:flex">
         <a href="/" class="hover:text-brass transition-colors">Home</a>
         <a href="/#directory" class="hover:text-brass transition-colors">Browse benches</a>
-        <a href="/#directory" class="rounded-full bg-brass px-4 py-2 font-medium text-ink transition-colors hover:bg-brass/90">Adopt a bench</a>
+        {% if session.get('admin_authenticated') %}
+		<a href="{{ url_for('admin.index') }}" class="rounded-full bg-brass px-4 py-2 font-medium text-ink transition-colors hover:bg-brass/90">Dashboard</a>
+		{% else %}
+		<a href="/#directory" class="rounded-full bg-brass px-4 py-2 font-medium text-ink transition-colors hover:bg-brass/90">Adopt a bench</a>
+
+        {% endif %}
       </div>
 
       <!-- Mobile menu toggle (pure CSS, no JS) -->
@@ -73,6 +78,9 @@
       <div class="absolute inset-x-0 top-full z-20 hidden flex-col gap-1 border-t border-fog/10 bg-ink px-4 py-3 text-sm peer-checked:flex lg:hidden">
         <a href="/" class="rounded-lg px-3 py-2 hover:bg-fog/10">Home</a>
         <a href="/#directory" class="rounded-lg px-3 py-2 hover:bg-fog/10">Browse benches</a>
+        {% if session.get('admin_authenticated') %}
+        <a href="{{ url_for('admin.index') }}" class="rounded-lg px-3 py-2 hover:bg-fog/10">Dashboard</a>
+        {% endif %}
         <a href="/bench/142/adopt" class="rounded-lg px-3 py-2 hover:bg-fog/10">Adopt a bench</a>
       </div>
     </nav>

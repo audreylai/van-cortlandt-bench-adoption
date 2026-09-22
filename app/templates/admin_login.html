@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Admin login · Van Cortlandt Bench Adoption{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md px-4 py-16 sm:px-6">
+  <div class="rounded-2xl border border-ink/10 bg-paper p-8 shadow-sm">
+    <h1 class="font-serif text-3xl font-semibold">Admin login</h1>
+    <p class="mt-2 text-sm text-ink/60">Sign in to manage bench adoptions.</p>
+
+    {% if error %}
+    <p class="mt-6 rounded-lg bg-plaque/10 px-4 py-3 text-sm text-plaque" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" class="mt-8 space-y-5">
+      <label class="block text-sm font-medium">
+        Username
+        <input name="username" type="text" autocomplete="username" required
+               class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2 outline-none focus:border-moss">
+      </label>
+      <label class="block text-sm font-medium">
+        Password
+        <input name="password" type="password" autocomplete="current-password" required
+               class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2 outline-none focus:border-moss">
+      </label>
+      <button type="submit" class="w-full rounded-full bg-brass px-5 py-3 font-medium text-ink transition-colors hover:bg-brass/90">
+        Sign in
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

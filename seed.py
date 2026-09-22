@@ -105,6 +105,8 @@ def seed() -> None:
 						adopter_name=data["adopter_name"],
 						adopter_email=data["adopter_email"],
 						adoption_type=data["adoption_type"],
+						dedication=data.get("dedication"),
+						approved=True,
 						start_date=data["start_date"],
 						end_date=data["end_date"],
 						dedication=data["dedication"],

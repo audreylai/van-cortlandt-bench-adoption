@@ -11,7 +11,11 @@ site = Blueprint("site", __name__)
 
 def view_bench(bench):
     adoption = next(
-        (adoption for adoption in bench.adoptions if adoption.end_date >= date.today()),
+        (
+            adoption
+            for adoption in bench.adoptions
+            if adoption.approved and adoption.end_date >= date.today()
+        ),
         None,
     )
     view = {
@@ -85,6 +89,7 @@ def submit_adoption(bench_id):
         adoption_type=adoption_type,
         dedication=dedication,
         show_name=show_name,
+        approved=False,
         start_date=date.today(),
         end_date=add_months(date.today(), ADOPTION_TERM_MONTHS),
     )
