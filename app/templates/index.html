@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Van Cortlandt Bench Adoption{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="bg-ink text-fog">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <div class="max-w-2xl">
+      <h1 class="font-serif text-4xl font-semibold leading-tight sm:text-5xl">
+        Every bench in Van Cortlandt Park, tracked in one place
+      </h1>
+      <p class="mt-4 text-lg text-fog/80">
+        See which benches already have a sponsor, and adopt one of your own to help care for the park.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a href="#directory" class="rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">Browse benches</a>
+        <a href="#map" class="rounded-full border border-fog/30 px-6 py-3 font-medium text-fog transition-colors hover:border-fog/60">View the map</a>
+      </div>
+    </div>
+
+    <div class="mt-10 inline-flex flex-col gap-4 rounded-2xl border-2 border-brass/40 bg-paper px-6 py-5 text-ink sm:flex-row sm:items-center sm:gap-10">
+      <div>
+        <p class="font-serif text-3xl font-semibold">{{ adopted_count }}</p>
+        <p class="text-sm text-ink/60">benches adopted</p>
+      </div>
+      <div class="hidden h-10 w-px bg-ink/15 sm:block"></div>
+      <div>
+        <p class="font-serif text-3xl font-semibold">{{ benches|length - adopted_count }}</p>
+        <p class="text-sm text-ink/60">available for adoption</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Map -->
+<section id="map" class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+  <h2 class="font-serif text-2xl font-semibold sm:text-3xl">Find a bench near you</h2>
+  <p class="mt-2 text-ink/70">
+    Hover a marker to see its status. Green means it's open to adopt; bronze means it already has a sponsor.
+  </p>
+
+  <div class="mt-8 flex aspect-[16/9] w-full items-center justify-center rounded-2xl border border-dashed border-ink/20 bg-lake/10">
+    <p class="font-serif text-2xl font-semibold text-ink/60">Work in progress</p>
+  </div>
+
+  <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink/70">
+    <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-leaf"></span>Available</span>
+    <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-plaque"></span>Adopted</span>
+    <span class="text-ink/40">Illustrative map, not to scale</span>
+  </div>
+</section>
+
+<!-- Directory -->
+<section id="directory" class="border-t border-ink/10 bg-paper/60">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="font-serif text-2xl font-semibold sm:text-3xl">All benches</h2>
+        <p class="mt-2 text-ink/70">{{benches|length}} benches across the park.</p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <input id="bench-search" type="search" placeholder="Search by code or zone"
+               class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm placeholder:text-ink/40 focus:border-brass focus:outline-none">
+        <select id="bench-zone" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+          <option value="all">All zones</option>
+          {% for zone in zones %}
+          <option value="{{ zone|lower|replace(' ', '-') }}">{{ zone }}</option>
+          {% endfor %}
+        </select>
+        <select id="bench-status" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+          <option value="all">All statuses</option>
+          <option value="available">Available</option>
+          <option value="adopted">Adopted</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
+      <table class="w-full min-w-[640px] text-left text-sm">
+        <thead class="border-b border-ink/10 text-ink/60">
+          <tr>
+            <th class="px-4 py-3 font-medium">Bench</th>
+            <th class="px-4 py-3 font-medium">Zone</th>
+            <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium">Sponsor</th>
+            <th class="px-4 py-3 font-medium">Until</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ink/5">
+          {% for b in benches %}
+          <tr class="bench-row hover:bg-fog/40" data-code="{{ b.code|lower }}" data-zone="{{ b.zone|lower|replace(' ', '-') }}" data-adopted="{{ 'true' if b.adopted else 'false' }}">
+            <td class="px-4 py-3 font-medium">{{ b.code }}</td>
+            <td class="px-4 py-3 text-ink/70">{{ b.zone }}</td>
+            <td class="px-4 py-3">
+              {% if b.status == 'adopted' %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-plaque/10 px-2.5 py-1 text-xs font-medium text-plaque">
+                <span class="h-1.5 w-1.5 rounded-full bg-plaque"></span>Adopted
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-2.5 py-1 text-xs font-medium text-moss">
+                <span class="h-1.5 w-1.5 rounded-full bg-leaf"></span>Available
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-ink/70">{{ b.donor if b.status == 'adopted' else '—' }}</td>
+            <td class="px-4 py-3 text-ink/70">{{ b.until if b.status == 'adopted' else '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <a href="/bench/{{ b.id }}" class="font-medium text-moss hover:underline">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex flex-col gap-3 text-sm text-ink/60 sm:flex-row sm:items-center sm:justify-between">
+      <p id="bench-results" aria-live="polite"></p>
+      <div class="flex items-center gap-2">
+        <button id="previous-page" type="button" class="rounded-lg border border-ink/15 bg-white px-3 py-2 font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+        <span id="page-status" class="min-w-20 text-center"></span>
+        <button id="next-page" type="button" class="rounded-lg border border-ink/15 bg-white px-3 py-2 font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+	// May not scale well for more than 500+ benches but sufficient efficiency for now
+  (() => {
+    const rows = Array.from(document.querySelectorAll('.bench-row'));
+    const searchInput = document.querySelector('#bench-search');
+    const zoneSelect = document.querySelector('#bench-zone');
+    const statusSelect = document.querySelector('#bench-status');
+    const previousButton = document.querySelector('#previous-page');
+    const nextButton = document.querySelector('#next-page');
+    const results = document.querySelector('#bench-results');
+    const pageStatus = document.querySelector('#page-status');
+    const pageSize = 25;
+    let currentPage = 1;
+
+    function filteredRows() {
+      const search = searchInput.value.trim().toLowerCase();
+      return rows.filter((row) => {
+        const matchesSearch = !search || row.dataset.code.includes(search) || row.dataset.zone.includes(search.replaceAll(' ', '-'));
+        const matchesZone = zoneSelect.value === 'all' || row.dataset.zone === zoneSelect.value;
+        const matchesStatus = statusSelect.value === 'all' || row.dataset.adopted === (statusSelect.value === 'adopted' ? 'true' : 'false');
+        return matchesSearch && matchesZone && matchesStatus;
+      });
+    }
+
+    function renderPage() {
+      const matchingRows = filteredRows();
+      const totalPages = Math.max(1, Math.ceil(matchingRows.length / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      const firstRow = (currentPage - 1) * pageSize;
+      const visibleRows = new Set(matchingRows.slice(firstRow, firstRow + pageSize));
+
+      rows.forEach((row) => {
+        row.hidden = !visibleRows.has(row);
+      });
+      results.textContent = `${matchingRows.length} bench${matchingRows.length === 1 ? '' : 'es'} shown`;
+      pageStatus.textContent = `Page ${currentPage} of ${totalPages}`;
+      previousButton.disabled = currentPage === 1;
+      nextButton.disabled = currentPage === totalPages;
+    }
+
+    [searchInput, zoneSelect, statusSelect].forEach((control) => {
+      control.addEventListener('input', () => {
+        currentPage = 1;
+        renderPage();
+      });
+      control.addEventListener('change', () => {
+        currentPage = 1;
+        renderPage();
+      });
+    });
+    previousButton.addEventListener('click', () => {
+      currentPage -= 1;
+      renderPage();
+    });
+    nextButton.addEventListener('click', () => {
+      currentPage += 1;
+      renderPage();
+    });
+    renderPage();
+  })();
+</script>
+
+{% endblock %}

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Van Cortlandt Bench Adoption{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Zilla+Slab:wght@500;600;700&display=swap" rel="stylesheet">
+
+	<!-- TODO: change to using npm compiled tailwind but this will do for prototype  -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#1F3226',     // near-black forest green, primary text/nav
+            moss: '#3F6B45',    // links, "available" text
+            leaf: '#6FA366',    // available status dot
+            brass: '#A6793F',   // primary CTA accent
+            plaque: '#8C6239',  // adopted status / donor plaque
+            lake: '#3E7CA6',    // water accents on the map
+            field: '#C9D6A6',   // open-field patches on the map
+            fog: '#EDEBDF',     // page background
+            paper: '#F9F7F1',   // card background
+          },
+          fontFamily: {
+            serif: ['"Zilla Slab"', 'serif'],
+            sans: ['"Public Sans"', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-fog font-sans text-ink antialiased min-h-screen flex flex-col">
+
+  <header class="bg-ink text-fog">
+    <nav class="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-2 font-serif text-lg font-semibold tracking-tight">
+        <svg viewBox="0 0 24 16" class="h-5 w-7 shrink-0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <line x1="2" y1="3" x2="2" y2="9"/>
+          <line x1="22" y1="3" x2="22" y2="9"/>
+          <line x1="1" y1="4" x2="23" y2="4"/>
+          <line x1="1" y1="9" x2="23" y2="9"/>
+          <line x1="1" y1="11" x2="23" y2="11"/>
+          <line x1="4" y1="11" x2="4" y2="15"/>
+          <line x1="20" y1="11" x2="20" y2="15"/>
+        </svg>
+        Van Cortlandt Bench Adoption
+      </a>
+
+      <!-- Desktop links -->
+      <div class="hidden items-center gap-8 text-sm lg:flex">
+        <a href="/" class="hover:text-brass transition-colors">Home</a>
+        <a href="/#directory" class="hover:text-brass transition-colors">Browse benches</a>
+        <a href="/#directory" class="rounded-full bg-brass px-4 py-2 font-medium text-ink transition-colors hover:bg-brass/90">Adopt a bench</a>
+      </div>
+
+      <!-- Mobile menu toggle (pure CSS, no JS) -->
+      <input type="checkbox" id="nav-toggle" class="peer hidden">
+      <label for="nav-toggle" class="-mr-2 cursor-pointer p-2 lg:hidden" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </label>
+      <div class="absolute inset-x-0 top-full z-20 hidden flex-col gap-1 border-t border-fog/10 bg-ink px-4 py-3 text-sm peer-checked:flex lg:hidden">
+        <a href="/" class="rounded-lg px-3 py-2 hover:bg-fog/10">Home</a>
+        <a href="/#directory" class="rounded-lg px-3 py-2 hover:bg-fog/10">Browse benches</a>
+        <a href="/bench/142/adopt" class="rounded-lg px-3 py-2 hover:bg-fog/10">Adopt a bench</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-ink/10 bg-ink text-fog/70">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-sm sm:px-6 lg:px-8">
+      <p>Van Cortlandt Park Bench Adoption &middot; a community project, not run by NYC Parks.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

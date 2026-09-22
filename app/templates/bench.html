@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ bench.code if bench is defined else 'VCP-0142' }} · Van Cortlandt Bench Adoption{% endblock %}
+
+{% block content %}
+
+<nav class="mx-auto max-w-6xl px-4 pt-8 text-sm text-ink/50 sm:px-6 lg:px-8">
+  <a href="/" class="hover:text-ink">Home</a>
+  <span class="mx-2">/</span>
+  <a href="/#directory" class="hover:text-ink">Benches</a>
+  <span class="mx-2">/</span>
+  <span class="text-ink">{{ bench.code }}</span>
+</nav>
+
+<div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+  <div class="grid gap-10 md:grid-cols-2 md:items-start">
+
+    <!-- Illustration -->
+	<!-- Todo: replace with uploaded images of benches -->
+    <div class="rounded-2xl border border-ink/10 bg-paper p-10">
+      <div class="flex aspect-[4/3] items-center justify-center rounded-xl bg-fog">
+        <svg viewBox="0 0 120 80" class="h-32 w-48 text-ink/50" fill="none" stroke="currentColor"
+             stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="15" y1="15" x2="15" y2="45"/>
+          <line x1="105" y1="15" x2="105" y2="45"/>
+          <line x1="10" y1="20" x2="110" y2="20"/>
+          <line x1="10" y1="30" x2="110" y2="30"/>
+          <line x1="5" y1="45" x2="115" y2="45"/>
+          <line x1="5" y1="52" x2="115" y2="52"/>
+          <line x1="15" y1="52" x2="15" y2="72"/>
+          <line x1="35" y1="52" x2="35" y2="72"/>
+          <line x1="85" y1="52" x2="85" y2="72"/>
+          <line x1="105" y1="52" x2="105" y2="72"/>
+        </svg>
+      </div>
+      <p class="mt-4 text-center text-sm text-ink/50">{{ bench.zone }}</p>
+    </div>
+
+    <!-- Details -->
+    <div>
+      {% if bench.status == 'adopted' %}
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-plaque/10 px-3 py-1 text-sm font-medium text-plaque">
+        <span class="h-1.5 w-1.5 rounded-full bg-plaque"></span>Adopted
+      </span>
+      {% else %}
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3 py-1 text-sm font-medium text-moss">
+        <span class="h-1.5 w-1.5 rounded-full bg-leaf"></span>Available
+      </span>
+      {% endif %}
+
+      <h1 class="mt-4 font-serif text-3xl font-semibold sm:text-4xl">{{ bench.code }}</h1>
+      <p class="mt-1 text-ink/60">{{ bench.zone }}</p>
+      <p class="mt-2 text-sm text-ink/60">Bench type: {{ bench.bench_type }}</p>
+
+      {% if bench.status == 'adopted' %}
+      <div class="mt-6 rounded-2xl bg-plaque px-6 py-6 text-fog shadow-lg">
+        <p class="font-serif text-xl font-semibold">{{ bench.donor_name }}</p>
+        <p class="mt-3 italic text-fog/85">&ldquo;{{ bench.dedication }}&rdquo;</p>
+        <p class="mt-4 text-sm text-fog/70">{{ bench.start_date }} &ndash; {{ bench.end_date }}</p>
+        <p class="text-sm text-fog/70">{{ bench.days_left }} days remaining</p>
+      </div>
+      {% else %}
+      <p class="mt-6 text-ink/70">This bench doesn't have a sponsor yet. Adopt it to add a dedication and support the park.</p>
+      <a href="/bench/{{ bench.id }}/adopt"
+         class="mt-6 inline-block rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">
+        Adopt this bench
+      </a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

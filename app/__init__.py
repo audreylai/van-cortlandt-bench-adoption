@@ -13,11 +13,9 @@ def create_app(config_class=Config):
     db.init_app(app)
 
     from .api import api
-    from .auth import auth
     from .site import site
 
     app.register_blueprint(api)
-    app.register_blueprint(auth)
     app.register_blueprint(site)
 
     with app.app_context():
