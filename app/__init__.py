@@ -60,6 +60,13 @@ def ensure_adoption_content_columns():
                 connection.execute(text(f"ALTER TABLE {table} ADD COLUMN plaque_text TEXT"))
             if "in_memory_name" not in columns:
                 connection.execute(text(f"ALTER TABLE {table} ADD COLUMN in_memory_name TEXT"))
+            if "plaque_timing_acknowledged" not in columns:
+                connection.execute(
+                    text(
+                        f"ALTER TABLE {table} ADD COLUMN plaque_timing_acknowledged "
+                        "BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+                )
             if "dedication" in columns:
                 connection.execute(
                     text(

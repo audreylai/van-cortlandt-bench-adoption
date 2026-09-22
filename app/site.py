@@ -1,6 +1,7 @@
 from datetime import date
 
 from flask import Blueprint, redirect, render_template, request, session, url_for
+from sqlalchemy import func
 
 from . import db
 from .api import ADOPTION_OPTIONS, adoption_end_date, current_adoption
@@ -84,13 +85,6 @@ def adopt_bench():
         and current_adoption(requested_bench) is not None,
     )
 
-
-@site.get("/bench/<int:bench_id>/adopt")
-def legacy_adopt_bench(bench_id):
-    db.get_or_404(Bench, bench_id)
-    return redirect(url_for("site.adopt_bench", bench_id=bench_id), code=308)
-
-
 @site.post("/bench/adopt")
 def submit_adoption():
     adoption_type = request.form.get("adoption_type")
@@ -106,17 +100,31 @@ def submit_adoption():
         return "This bench is already adopted.", 409
 
     adopter_name = request.form.get("adopter_name")
-    adopter_email = request.form.get("adopter_email")
+    adopter_email = request.form.get("adopter_email", "").strip().lower()
     plaque_text = request.form.get("plaque_text") or None
     in_memory_name = request.form.get("in_memory_name") or None
     requested_location = "Parade Ground" if adoption_type == "new_bench" else None
     show_name = request.form.get("show_name") == "on"
+    plaque_timing_acknowledged = request.form.get("plaque_timing_acknowledged") == "on"
 
 	# basic form validation
     if not adopter_name or not adopter_email:
         return "Adopter name and email are required.", 400
     if adoption_type not in ADOPTION_OPTIONS:
         return "A valid adoption option is required.", 400
+    if adoption_type == "bench_adoption":
+        duplicate_active = Adoption.query.filter(
+            Adoption.bench_id == bench_record.bench_id,
+            func.lower(Adoption.adopter_email) == adopter_email,
+        ).first()
+        duplicate_request = AdoptionRequest.query.filter(
+            AdoptionRequest.bench_id == bench_record.bench_id,
+            func.lower(AdoptionRequest.adopter_email) == adopter_email,
+        ).first()
+        if duplicate_active or duplicate_request:
+            return "This email is already associated with a request for this bench.", 409
+    if not plaque_timing_acknowledged:
+        return "Please acknowledge the 6-8 week plaque timeline before submitting.", 400
 
     adoption = AdoptionRequest(
         bench=bench_record,
@@ -127,10 +135,14 @@ def submit_adoption():
         in_memory_name=in_memory_name,
         requested_location=requested_location,
         show_name=show_name,
+        plaque_timing_acknowledged=plaque_timing_acknowledged,
         requested_date=date.today(),
         start_date=date.today(),
         end_date=adoption_end_date(date.today(), adoption_type),
     )
+    
+    # TODO: Send email with mailgun for confirmation of request
+    
     db.session.add(adoption)
     db.session.commit()
     session[CONFIRMATION_SESSION_KEY] = adoption.request_id
