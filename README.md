@@ -174,6 +174,10 @@ Run the seed command only once on a new database unless you intentionally want t
 - Add CSRF protection and stronger production session/security settings
 - Add payment processing for adoption fees
 - Add image uploads for individual benches, need cloud storage
-- Add admin tools for editing bench metadata and managing locations
+- Add admin bulk tools for editing bench metadata and managing locations
 - Add audit history for request approvals, edits, and deletions
 - Create tests for public pages, API validation, admin workflows, and database migrations
+- Comprehensive adoption expiration handling beyond deactivating adoption
+- Prevent conflicting adoptions (real-time, very unlikely but could happen)
+- Bench adoption reservation feature
+- Add soft deletion for all records instead of currently implemented permanent deletion
