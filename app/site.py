@@ -47,9 +47,10 @@ def view_bench(bench):
     }
 
     if adoption:
+        donor_name = adoption.adopter_name if adoption.show_name else "Anonymous donor"
         view.update(
-            donor_name=adoption.adopter_name,
-            donor=adoption.adopter_name,
+            donor_name=donor_name,
+            donor=donor_name,
             plaque_text=adoption.plaque_text,
             in_memory_name=adoption.in_memory_name,
             show_name=adoption.show_name,

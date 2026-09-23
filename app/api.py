@@ -58,7 +58,9 @@ def serialize_bench(bench):
             "adoption_type": adoption.adoption_type,
             "price": ADOPTION_OPTIONS[adoption.adoption_type]["price"],
             "price_note": "and up" if adoption.adoption_type == "new_bench" else None,
-            "adopter_name": adoption.adopter_name,
+            "adopter_name": (
+                adoption.adopter_name if adoption.show_name else "Anonymous donor"
+            ),
             "adopter_email": adoption.adopter_email,
             "start_date": adoption.start_date.isoformat(),
             "end_date": adoption.end_date.isoformat(),
