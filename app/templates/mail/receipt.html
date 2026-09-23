@@ -1,0 +1,95 @@
+{% extends "mail/base.html" %}
+
+{# Suggested subject line: We've received your bench adoption request #}
+
+{% block title %}We've received your request &middot; Van Cortlandt Bench Adoption{% endblock %}
+{% block preheader %}Your request for {{ bench.code if bench is defined else 'VCP-0142' }} is being reviewed.{% endblock %}
+
+{# Mock data so this renders on its own. In production, use an absolute
+   site_url — email links can't be relative like the ones on your pages. #}
+{% set site_url = site_url if site_url is defined else 'https://your-domain.example.com' %}
+{% set name = name if name is defined else 'Maria' %}
+{% set bench = bench if bench is defined else {
+  'id': 142,
+  'code': 'VCP-0142',
+  'zone': 'Parade Ground',
+} %}
+{% set term_months = term_months if term_months is defined else 12 %}
+{% set request_id = request_id if request_id is defined else none %}
+{% set dedication = dedication if dedication is defined else 'No plaque text provided.' %}
+{% set in_memory_name = in_memory_name if in_memory_name is defined else none %}
+{% set submitted_on = submitted_on if submitted_on is defined else 'September 22, 2026' %}
+
+{% block content %}
+
+<span style="display:inline-block; background-color:#E3EDF3; color:#2E5F7D; font-size:13px; font-weight:600; padding:6px 14px; border-radius:999px;">
+  Pending review
+</span>
+
+<h1 style="margin:20px 0 0; font-family:'Zilla Slab', Georgia, 'Times New Roman', serif; font-size:26px; line-height:1.3; color:#1F3226;">
+  We've got your request, {{ name }}
+</h1>
+
+<p style="margin:16px 0 0;">
+  We've received your request to adopt bench <strong>{{ bench.code }}</strong> in {{ bench.zone }}. Here's what you sent us:
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="margin:24px 0; border:1px solid rgba(31,50,38,0.12); border-radius:12px;">
+  <tr>
+    <td style="padding:20px 24px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">
+		<tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Request ID</td>
+          <td style="padding:4px 0; text-align:right;">REQ-{{ "%04d"|format(request_id) }}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Bench</td>
+          <td style="padding:4px 0; text-align:right; font-weight:600;">{{ bench.code }}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Zone</td>
+          <td style="padding:4px 0; text-align:right;">{{ bench.zone }}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Term</td>
+          <td style="padding:4px 0; text-align:right;">{{ term_months }} months</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6; vertical-align:top;">Plaque text</td>
+          <td style="padding:4px 0; text-align:right; font-style:italic;">&ldquo;{{ dedication }}&rdquo;</td>
+        </tr>
+        {% if in_memory_name %}
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">In memory of</td>
+          <td style="padding:4px 0; text-align:right;">{{ in_memory_name }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Submitted</td>
+          <td style="padding:4px 0; text-align:right;">{{ submitted_on }}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;">
+  Our team typically reviews new requests within 3&ndash;5 business days. We'll email you as soon as a decision is made &mdash; no need to follow up in the meantime.
+</p>
+
+<!-- Todo: create page for users to enter a request id? and check on status of approval -->
+<!-- <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 8px;">
+  <tr>
+    <td bgcolor="#A6793F" style="background-color:#A6793F; border-radius:999px;">
+      <a href="{{ site_url }}/{{ 'bench/' ~ bench.id if bench.id else '#directory' }}"
+         style="display:inline-block; padding:12px 28px; font-family:'Public Sans', Arial, Helvetica, sans-serif; font-size:15px; font-weight:600; color:#1F3226;">
+        View your request
+      </a>
+    </td>
+  </tr>
+</table> -->
+
+<p style="margin:24px 0 0;">Thanks for helping care for Van Cortlandt Park.</p>
+
+{% endblock %}

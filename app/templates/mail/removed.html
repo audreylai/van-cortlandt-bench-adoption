@@ -1,0 +1,72 @@
+{% extends "mail/base.html" %}
+
+{# Suggested subject line: An update on your bench adoption #}
+
+{% block title %}An update on your adoption &middot; Van Cortlandt Bench Adoption{% endblock %}
+{% block preheader %}{{ bench.code if bench is defined else 'VCP-0142' }} has been removed from your account.{% endblock %}
+
+{% set site_url = site_url if site_url is defined else 'https://your-domain.example.com' %}
+{% set name = name if name is defined else 'Maria' %}
+{% set bench = bench if bench is defined else {
+  'id': 142,
+  'code': 'VCP-0142',
+  'zone': 'Parade Ground',
+} %}
+{% set removed_on = removed_on if removed_on is defined else 'September 22, 2026' %}
+{% set request_id = request_id if request_id is defined else none %}
+{% set reason = reason if reason is defined else 'The adoption term ended and was not renewed.' %}
+
+{% block content %}
+
+<span style="display:inline-block; background-color:rgba(31,50,38,0.08); color:#1F3226; font-size:13px; font-weight:600; padding:6px 14px; border-radius:999px;">
+  Removed
+</span>
+
+<h1 style="margin:20px 0 0; font-family:'Zilla Slab', Georgia, 'Times New Roman', serif; font-size:26px; line-height:1.3; color:#1F3226;">
+  Your bench adoption has been removed
+</h1>
+
+<p style="margin:16px 0 0;">
+  Hi {{ name }}, this is to let you know the adoption for bench <strong>{{ bench.code }}</strong> in {{ bench.zone }} was removed from our records on {{ removed_on }}.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="margin:24px 0; border:1px solid rgba(31,50,38,0.12); border-radius:12px;">
+  <tr>
+    <td style="padding:20px 24px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Bench</td>
+          <td style="padding:4px 0; text-align:right; font-weight:600;">{{ bench.code }}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Zone</td>
+          <td style="padding:4px 0; text-align:right;">{{ bench.zone }}</td>
+        </tr>
+        {% if request_id %}
+        <tr>
+          <td style="padding:4px 0; color:#1F3226; opacity:0.6;">Request ID</td>
+          <td style="padding:4px 0; text-align:right;">REQ-{{ "%04d"|format(request_id) }}</td>
+        </tr>
+        {% endif %}
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;">
+  If you'd like to adopt another bench, you're welcome to browse what's currently available.
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 8px;">
+  <tr>
+    <td bgcolor="#A6793F" style="background-color:#A6793F; border-radius:999px;">
+      <a href="{{ site_url }}/#directory"
+         style="display:inline-block; padding:12px 28px; font-family:'Public Sans', Arial, Helvetica, sans-serif; font-size:15px; font-weight:600; color:#1F3226;">
+        Browse available benches
+      </a>
+    </td>
+  </tr>
+</table>
+
+{% endblock %}

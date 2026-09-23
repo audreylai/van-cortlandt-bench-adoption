@@ -1,14 +1,31 @@
 from datetime import date
+from urllib.parse import urlparse
 
 from flask import Blueprint, redirect, render_template, request, session, url_for
 from sqlalchemy import func
 
 from . import db
 from .api import ADOPTION_OPTIONS, adoption_end_date, current_adoption
+from .mail import send_request_received
 from .models import Adoption, AdoptionRequest, Bench
 
 site = Blueprint("site", __name__)
 CONFIRMATION_SESSION_KEY = "adoption_confirmation_id"
+
+
+def adoption_error(message, status_code, bench_id=None):
+    if bench_id:
+        back_url = url_for("site.adopt_bench", bench_id=bench_id)
+    else:
+        referrer = request.referrer or ""
+        parsed_referrer = urlparse(referrer)
+        if parsed_referrer.netloc == request.host and parsed_referrer.path:
+            back_url = parsed_referrer.path
+            if parsed_referrer.query:
+                back_url += f"?{parsed_referrer.query}"
+        else:
+            back_url = url_for("site.adopt_bench")
+    return render_template("error.html", message=message, back_url=back_url), status_code
 
 
 def view_bench(bench):
@@ -95,9 +112,11 @@ def submit_adoption():
         else None
     )
     if adoption_type == "bench_adoption" and bench_record is None:
-        return "Please select a bench to adopt.", 400
+        return adoption_error("Please select a bench to adopt.", 400)
     if adoption_type == "bench_adoption" and current_adoption(bench_record):
-        return "This bench is already adopted.", 409
+        return adoption_error(
+            "This bench is already adopted.", 409, selected_bench_id
+        )
 
     adopter_name = request.form.get("adopter_name")
     adopter_email = request.form.get("adopter_email", "").strip().lower()
@@ -108,9 +127,13 @@ def submit_adoption():
 
 	# basic form validation
     if not adopter_name or not adopter_email:
-        return "Adopter name and email are required.", 400
+        return adoption_error(
+            "Adopter name and email are required.", 400, selected_bench_id
+        )
     if adoption_type not in ADOPTION_OPTIONS:
-        return "A valid adoption option is required.", 400
+        return adoption_error(
+            "A valid adoption option is required.", 400, selected_bench_id
+        )
     if adoption_type == "bench_adoption":
         duplicate_active = Adoption.query.filter(
             Adoption.bench_id == bench_record.bench_id,
@@ -121,7 +144,11 @@ def submit_adoption():
             func.lower(AdoptionRequest.adopter_email) == adopter_email,
         ).first()
         if duplicate_active or duplicate_request:
-            return "This email is already associated with a request for this bench.", 409
+            return adoption_error(
+                "This email is already associated with a request for this bench.",
+                409,
+                selected_bench_id,
+            )
     adoption = AdoptionRequest(
         bench=bench_record,
         adopter_name=adopter_name,
@@ -135,11 +162,10 @@ def submit_adoption():
         start_date=date.today(),
         end_date=adoption_end_date(date.today(), adoption_type),
     )
-    
-    # TODO: Send email with mailgun for confirmation of request
-    
+
     db.session.add(adoption)
     db.session.commit()
+    send_request_received(adoption)
     session[CONFIRMATION_SESSION_KEY] = adoption.request_id
 
     return redirect(

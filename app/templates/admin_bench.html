@@ -30,14 +30,52 @@
         <input name="in_memory_name" value="{{ adoption.in_memory_name or '' }}" maxlength="150" class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
       </label>
       <div class="grid gap-5 sm:grid-cols-2">
-        <p class="text-sm text-ink/60">Term: 10 years (fixed)</p>
+        <label class="block text-sm font-medium">Start date
+          <input name="start_date" type="date" value="{{ adoption.start_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
+        <label class="block text-sm font-medium">End date
+          <input name="end_date" type="date" value="{{ adoption.end_date.isoformat() }}" required class="mt-2 w-full rounded-lg border border-ink/20 bg-fog px-3 py-2">
+        </label>
       </div>
       <label class="flex items-center gap-2 text-sm text-ink/80"><input type="checkbox" name="show_name" {% if adoption.show_name %}checked{% endif %} class="h-4 w-4 rounded accent-brass"> Show adopter name publicly</label>
       <button type="submit" class="rounded-full bg-brass px-5 py-3 font-medium text-ink hover:bg-brass/90">Save changes</button>
     </form>
+    <div class="mt-4 border-t border-ink/10 pt-5">
+      <button type="button" id="open-delete-dialog" class="rounded-full border border-plaque px-5 py-3 font-medium text-plaque hover:bg-plaque/10">Delete adoption</button>
+    </div>
   </section>
   {% else %}
   <p class="mt-10 rounded-2xl border border-ink/10 bg-paper px-6 py-8 text-ink/60">This bench is available and has no active adoption.</p>
   {% endif %}
 </div>
+
+{% if adoption %}
+<dialog id="delete-dialog" class="w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-ink/10 bg-paper p-0 text-ink shadow-xl backdrop:bg-ink/40">
+  <form method="post" action="{{ url_for('admin.delete_adoption', adoption_id=adoption.adoption_id) }}" class="p-6 sm:p-8">
+    <h2 class="font-serif text-2xl font-semibold">Delete this adoption?</h2>
+    <p class="mt-2 text-sm text-ink/70">
+      This will remove {{ adoption.adopter_name }}'s active adoption of bench {{ bench.code }} and send them an email notification.
+    </p>
+    <p class="mt-4 rounded-xl border border-plaque/20 bg-plaque/10 p-4 text-sm text-plaque">This action cannot be undone.</p>
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" id="cancel-delete-dialog" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-medium hover:border-ink/40">Cancel</button>
+      <button type="submit" class="rounded-full bg-plaque px-4 py-2 text-sm font-medium text-paper hover:bg-plaque/90">Delete adoption</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.querySelector('#delete-dialog');
+    const openButton = document.querySelector('#open-delete-dialog');
+    const cancelButton = document.querySelector('#cancel-delete-dialog');
+
+    openButton.addEventListener('click', () => dialog.showModal());
+    cancelButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}

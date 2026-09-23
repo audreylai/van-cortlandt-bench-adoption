@@ -14,6 +14,7 @@ from flask import (
 
 from . import db
 from .api import ADOPTION_OPTIONS, adoption_end_date, current_adoption
+from .mail import send_request_approved, send_request_deleted
 from .models import Adoption, AdoptionRequest, Bench
 
 admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -49,6 +50,13 @@ def next_bench_code():
     while f"{candidate_number:04d}" in existing_codes:
         candidate_number += 1
     return f"{candidate_number:04d}"
+
+
+def parse_date(value):
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
 
 
 @admin.get("/")
@@ -100,21 +108,47 @@ def bench_view(bench_id):
         adopter_email = request.form.get("adopter_email", "").strip()
         plaque_text = request.form.get("plaque_text", "").strip() or None
         in_memory_name = request.form.get("in_memory_name", "").strip() or None
+        start_date = parse_date(request.form.get("start_date"))
+        end_date = parse_date(request.form.get("end_date"))
         show_name = request.form.get("show_name") == "on"
         if not adopter_name or not adopter_email:
             error = "Adopter name and email are required."
         elif plaque_text and len(plaque_text) > 300:
             error = "Plaque text must be 300 characters or fewer."
+        elif not start_date or not end_date:
+            error = "Start and end dates are required."
+        elif end_date < start_date:
+            error = "End date must be on or after the start date."
         else:
-                adoption.adopter_name = adopter_name
-                adoption.adopter_email = adopter_email
-                adoption.plaque_text = plaque_text
-                adoption.in_memory_name = in_memory_name
-                adoption.show_name = show_name
-                db.session.commit()
-                return redirect(url_for("admin.bench_view", bench_id=bench_id))
+            adoption.adopter_name = adopter_name
+            adoption.adopter_email = adopter_email
+            adoption.plaque_text = plaque_text
+            adoption.in_memory_name = in_memory_name
+            adoption.start_date = start_date
+            adoption.end_date = end_date
+            adoption.show_name = show_name
+            db.session.commit()
+            return redirect(url_for("admin.bench_view", bench_id=bench_id))
 
     return render_template("admin_bench.html", bench=bench_record, adoption=adoption, error=error)
+
+
+@admin.post("/adoptions/<int:adoption_id>/delete")
+@admin_required
+def delete_adoption(adoption_id):
+    adoption = Adoption.query.get_or_404(adoption_id)
+    adopter_name = adoption.adopter_name
+    adopter_email = adoption.adopter_email
+    bench = adoption.bench
+    db.session.delete(adoption)
+    db.session.commit()
+    send_request_deleted(
+        adopter_name,
+        adopter_email,
+        bench,
+        reason="The active adoption was removed by an administrator.",
+    )
+    return redirect(url_for("admin.index"))
 
 
 @admin.route("/requests/<int:request_id>", methods=["GET", "POST"])
@@ -164,11 +198,14 @@ def request_view(request_id):
 def approve_request(request_id):
     adoption_request = AdoptionRequest.query.get_or_404(request_id)
     delete_other_requests = request.form.get("delete_other_requests") == "on"
+    deleted_requests = []
     if delete_other_requests and adoption_request.bench_id:
-        AdoptionRequest.query.filter(
+        deleted_requests = AdoptionRequest.query.filter(
             AdoptionRequest.bench_id == adoption_request.bench_id,
             AdoptionRequest.request_id != adoption_request.request_id,
-        ).delete(synchronize_session=False)
+        ).all()
+        for request_to_delete in deleted_requests:
+            db.session.delete(request_to_delete)
 
     bench = adoption_request.bench
     if adoption_request.adoption_type == "new_bench" and bench is None:
@@ -195,6 +232,14 @@ def approve_request(request_id):
     db.session.add(adoption)
     db.session.delete(adoption_request)
     db.session.commit()
+    send_request_approved(adoption, bench)
+    for request_to_delete in deleted_requests:
+        send_request_deleted(
+            request_to_delete.adopter_name,
+            request_to_delete.adopter_email,
+            bench,
+            reason="Another adoption request for this bench was approved.",
+        )
     if adoption.bench_id:
         return redirect(url_for("admin.bench_view", bench_id=adoption.bench_id))
     return redirect(url_for("admin.index"))
@@ -204,8 +249,12 @@ def approve_request(request_id):
 @admin_required
 def delete_request(request_id):
     adoption_request = AdoptionRequest.query.get_or_404(request_id)
+    adopter_name = adoption_request.adopter_name
+    adopter_email = adoption_request.adopter_email
+    bench = adoption_request.bench
     db.session.delete(adoption_request)
     db.session.commit()
+    send_request_deleted(adopter_name, adopter_email, bench)
     return redirect(url_for("admin.index"))
 
 

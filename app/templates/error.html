@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong · Van Cortlandt Bench Adoption{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex max-w-2xl flex-1 items-center justify-center px-4 py-24 text-center sm:px-6 lg:px-8">
+  <div>
+    <p class="text-sm font-medium uppercase tracking-wide text-moss">Request not submitted</p>
+    <h1 class="mt-3 font-serif text-4xl font-semibold sm:text-5xl">Something went wrong</h1>
+    <p class="mt-4 text-ink/70">{{ message }}</p>
+    <a href="{{ back_url }}" class="mt-8 inline-block rounded-full bg-brass px-6 py-3 font-medium text-ink transition-colors hover:bg-brass/90">
+      Go back
+    </a>
+  </div>
+</div>
+{% endblock %}

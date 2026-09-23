@@ -14,6 +14,7 @@ A Flask application for browsing Van Cortlandt Park benches, submitting adoption
 - Manage active adoptions and pending requests from the admin dashboard.
 - Approve or delete requests, including duplicate requests for the same bench.
 - Automatically create a new bench record when a new-bench request is approved.
+- Send Mailgun email confirmations when requests are received, approved, or deleted.
 
 ## Pages
 
@@ -36,7 +37,8 @@ Admin routes are protected by the configured username and password.
 | --- | --- |
 | `/admin/login` | Admin login page. Authenticated admins are redirected to the dashboard. |
 | `/admin/` | Dashboard with adopted/available bench tabs and the adoption requests table. |
-| `/admin/bench/<bench_id>` | Edit an active adoption for a bench. |
+| `/admin/bench/<bench_id>` | Edit an active adoption for a bench, including its term dates. |
+| `/admin/adoptions/<adoption_id>/delete` | Delete an active adoption and notify the adopter. |
 | `/admin/requests/<request_id>` | Review and edit a pending adoption request. |
 | `/admin/requests/<request_id>/approve` | Approve a request. New-bench requests create a bench automatically. |
 | `/admin/requests/<request_id>/delete` | Delete a pending request. |
@@ -67,7 +69,7 @@ Example JSON body:
   "adopter_name": "Jane Doe",
   "adopter_email": "jane@example.com",
   "adoption_type": "bench_adoption",
-  "dedication": "In memory of John Doe",
+  "plaque_text": "In memory of John Doe",
   "show_name": true
 }
 ```
@@ -77,7 +79,7 @@ The API does not accept new-bench requests. Use the public `/bench/adopt` form f
 ## Data model
 
 - `Bench`: numeric bench code, location, and bench type.
-- `AdoptionRequest`: pending request awaiting admin action. Includes adopter details, requested date, dedication, and optional bench association.
+- `AdoptionRequest`: pending request awaiting admin action. Includes adopter details, requested date, plaque text, and optional bench association.
 - `Adoption`: approved active adoption associated with a bench.
 
 Adoptions use a ten-year term ending one day before the ten-year anniversary of the start date.
@@ -106,6 +108,11 @@ Requirements: Python 3.10+ and PostgreSQL.
 	SECRET_KEY=replace-with-a-long-random-value
 	ADMIN_USERNAME=admin
 	ADMIN_PASSWORD=replace-with-a-secure-password
+	MAILGUN_API_KEY=key-your-mailgun-api-key
+	MAILGUN_DOMAIN=mg.example.com
+	MAIL_FROM_NAME=Van Cortlandt Park
+	MAILGUN_FROM_EMAIL=noreply@mg.example.com
+	SITE_URL=http://localhost:5000
 	```
 
 4. Start the development server:
@@ -145,10 +152,15 @@ The seed script deletes existing benches, active adoptions, and adoption request
 	SECRET_KEY=<long random production secret>
 	ADMIN_USERNAME=<admin username>
 	ADMIN_PASSWORD=<strong admin password>
+	MAILGUN_API_KEY=<Mailgun API key>
+	MAILGUN_DOMAIN=<Mailgun sending domain>
+	MAIL_FROM_NAME=<sender display name>
+	MAILGUN_FROM_EMAIL=<verified Mailgun sender address>
+	SITE_URL=https://your-production-domain.example.com
 	```
 
 6. Deploy the service. Tables are created during application startup.
-7. For a fresh database, open the Render service **Shell** and run (note that shell is only available for paid Render subscriptions): 
+7. For a demo database, open the Render service **Shell** and run (note that shell is only available for paid Render subscriptions, just run locally and change your .env DATABASE_URL): 
 
 	```bash
 	python seed.py

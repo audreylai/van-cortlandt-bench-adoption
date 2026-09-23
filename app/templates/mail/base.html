@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{% block title %}Van Cortlandt Bench Adoption{% endblock %}</title>
+
+{# Loads in mail clients that support it (Apple Mail, iOS Mail, some webmail);
+   everything falls back to the Georgia / Arial stacks below elsewhere. #}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+  body, table, td { margin: 0; padding: 0; }
+  body { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #EDEBDF; }
+  img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
+  table { border-collapse: collapse !important; }
+  a { text-decoration: none; }
+  @media screen and (max-width: 600px) {
+    .email-container { width: 100% !important; }
+    .fluid-padding { padding-left: 20px !important; padding-right: 20px !important; }
+  }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body style="margin:0; padding:0; background-color:#EDEBDF;">
+
+  <!-- Preview text shown in the inbox list, hidden in the email body -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    {% block preheader %}{% endblock %}
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EDEBDF;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0"
+               style="width:600px; max-width:600px; background-color:#F9F7F1; border-radius:16px; overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td bgcolor="#1F3226" style="background-color:#1F3226; padding:28px 32px;">
+              <span style="font-family:'Zilla Slab', Georgia, 'Times New Roman', serif; font-size:18px; font-weight:600; color:#EDEBDF;">
+                &#127795; Van Cortlandt Bench Adoption
+              </span>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="fluid-padding" style="padding:40px 32px; font-family:'Public Sans', Arial, Helvetica, sans-serif; font-size:16px; line-height:1.6; color:#1F3226;">
+              {% block content %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#1F3226" style="background-color:#1F3226; padding:24px 32px; font-family:'Public Sans', Arial, Helvetica, sans-serif; font-size:12px; line-height:1.6; color:#B7C2BA;">
+              <p style="margin:0;">Van Cortlandt Park Bench Adoption &middot; a community project, not run by NYC Parks.</p>
+              <!-- <p style="margin:8px 0 0;">
+                <a href="{{ site_url }}/account" style="color:#B7C2BA; text-decoration:underline;">Manage your adoption</a>
+                &nbsp;&middot;&nbsp;
+                <a href="{{ site_url }}/contact" style="color:#B7C2BA; text-decoration:underline;">Contact us</a>
+              </p> -->
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

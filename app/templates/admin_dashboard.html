@@ -85,7 +85,7 @@
   </section>
 
   <section class="mt-12">
-    <div class="flex items-baseline justify-between gap-4">
+    <div class="flex flex-col items-baseline justify-between gap-4">
       <div>
         <h2 class="font-serif text-2xl font-semibold sm:text-3xl">Adoption requests</h2>
         <p class="mt-2 text-ink/70">Requests remain here until an admin approves or deletes them.</p>
@@ -103,6 +103,10 @@
           <option value="{{ zone|lower|replace(' ', '-') }}">{{ zone }}</option>
           {% endfor %}
         </select>
+        <label class="sr-only" for="request-date-from">Requested date from</label>
+        <input id="request-date-from" type="date" aria-label="Requested date from" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+        <label class="sr-only" for="request-date-to">Requested date to</label>
+        <input id="request-date-to" type="date" aria-label="Requested date to" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
       </div>
     </div>
     <div class="mt-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
@@ -111,11 +115,12 @@
         <tbody class="divide-y divide-ink/5">
           {% for adoption_request in adoption_requests %}
             <tr class="request-row hover:bg-fog/40"
-              data-request-id="{{ adoption_request.request_id }}"
+              data-request-id="REQ-{{ "%04d"|format(adoption_request.request_id) }}"
               data-bench="{{ adoption_request.bench.code if adoption_request.bench else 'new bench' }}"
               data-zone="{{ adoption_request.bench.location if adoption_request.bench else 'Parade Ground' }}"
               data-adopter="{{ adoption_request.adopter_name|lower }}"
               data-email="{{ adoption_request.adopter_email|lower }}"
+              data-requested-date="{{ adoption_request.requested_date.isoformat() }}"
               data-type="{{ adoption_request.adoption_type }}">
             <td class="px-4 py-3 font-medium">REQ-{{ "%04d"|format(adoption_request.request_id) }}</td>
             <td class="px-4 py-3 text-ink/70">{{ adoption_request.requested_date.strftime('%b %-d, %Y') }}</td>
@@ -205,6 +210,8 @@
     const requestSearch = document.querySelector('#request-search');
     const requestTypeFilter = document.querySelector('#request-type-filter');
     const requestZoneFilter = document.querySelector('#request-zone-filter');
+    const requestDateFrom = document.querySelector('#request-date-from');
+    const requestDateTo = document.querySelector('#request-date-to');
     const requestRows = Array.from(document.querySelectorAll('.request-row'));
     const requestResults = document.querySelector('#request-results');
     const requestPreviousButton = document.querySelector('#request-previous-page');
@@ -216,12 +223,16 @@
       const query = requestSearch.value.trim().toLowerCase();
       const selectedType = requestTypeFilter.value;
       const selectedZone = requestZoneFilter.value;
+      const selectedDateFrom = requestDateFrom.value;
+      const selectedDateTo = requestDateTo.value;
       const matchingRequests = requestRows.filter((row) => {
         const searchable = `${row.dataset.requestId} ${row.dataset.bench} ${row.dataset.adopter} ${row.dataset.email}`;
         const matchesSearch = !query || searchable.includes(query);
         const matchesType = selectedType === 'all' || row.dataset.type === selectedType;
         const matchesZone = selectedZone === 'all' || row.dataset.zone.toLowerCase().replaceAll(' ', '-') === selectedZone;
-        return matchesSearch && matchesType && matchesZone;
+        const matchesDateFrom = !selectedDateFrom || row.dataset.requestedDate >= selectedDateFrom;
+        const matchesDateTo = !selectedDateTo || row.dataset.requestedDate <= selectedDateTo;
+        return matchesSearch && matchesType && matchesZone && matchesDateFrom && matchesDateTo;
       });
       const totalPages = Math.max(1, Math.ceil(matchingRequests.length / requestPageSize));
       requestPage = Math.min(requestPage, totalPages);
@@ -245,6 +256,10 @@
       requestPage = 1;
       renderRequests();
     });
+    [requestDateFrom, requestDateTo].forEach((control) => control.addEventListener('change', () => {
+      requestPage = 1;
+      renderRequests();
+    }));
     requestPreviousButton.addEventListener('click', () => {
       requestPage -= 1;
       renderRequests();

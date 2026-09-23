@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 
 from . import db
+from .mail import send_request_received
 from .models import Adoption, AdoptionRequest, Bench
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -136,5 +137,6 @@ def adopt_bench(bench_id):
     )
     db.session.add(adoption)
     db.session.commit()
+    send_request_received(adoption)
 
     return jsonify(serialize_bench(bench_record)), 201

@@ -23,6 +23,10 @@
       </div>
       {% endif %}
       <div class="flex justify-between gap-4 border-b border-ink/10 pb-3">
+        <dt class="text-ink/60">Request ID</dt>
+        <dd class="font-medium">REQ-{{ "%04d"|format(adoption.request_id) }}</dd>
+      </div>
+      <div class="flex justify-between gap-4 border-b border-ink/10 pb-3">
         <dt class="text-ink/60">Option</dt>
         <dd class="font-medium">{{ adoption_option.label }}</dd>
       </div>
