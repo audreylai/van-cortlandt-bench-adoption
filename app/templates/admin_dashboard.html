@@ -103,10 +103,14 @@
           <option value="{{ zone|lower|replace(' ', '-') }}">{{ zone }}</option>
           {% endfor %}
         </select>
-        <label class="sr-only" for="request-date-from">Requested date from</label>
-        <input id="request-date-from" type="date" aria-label="Requested date from" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
-        <label class="sr-only" for="request-date-to">Requested date to</label>
-        <input id="request-date-to" type="date" aria-label="Requested date to" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brass focus:outline-none">
+        <label class="flex items-center gap-2 text-sm text-ink/70">
+          <span>From</span>
+          <input id="request-date-from" type="date" aria-label="Requested date from" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink focus:border-brass focus:outline-none">
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink/70">
+          <span>To</span>
+          <input id="request-date-to" type="date" aria-label="Requested date to" class="rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm text-ink focus:border-brass focus:outline-none">
+        </label>
       </div>
     </div>
     <div class="mt-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white">
@@ -225,6 +229,7 @@
       const selectedZone = requestZoneFilter.value;
       const selectedDateFrom = requestDateFrom.value;
       const selectedDateTo = requestDateTo.value;
+      const hasInvalidDateRange = selectedDateFrom && selectedDateTo && selectedDateFrom > selectedDateTo;
       const matchingRequests = requestRows.filter((row) => {
         const searchable = `${row.dataset.requestId} ${row.dataset.bench} ${row.dataset.adopter} ${row.dataset.email}`;
         const matchesSearch = !query || searchable.includes(query);
@@ -232,7 +237,7 @@
         const matchesZone = selectedZone === 'all' || row.dataset.zone.toLowerCase().replaceAll(' ', '-') === selectedZone;
         const matchesDateFrom = !selectedDateFrom || row.dataset.requestedDate >= selectedDateFrom;
         const matchesDateTo = !selectedDateTo || row.dataset.requestedDate <= selectedDateTo;
-        return matchesSearch && matchesType && matchesZone && matchesDateFrom && matchesDateTo;
+        return !hasInvalidDateRange && matchesSearch && matchesType && matchesZone && matchesDateFrom && matchesDateTo;
       });
       const totalPages = Math.max(1, Math.ceil(matchingRequests.length / requestPageSize));
       requestPage = Math.min(requestPage, totalPages);
@@ -256,10 +261,16 @@
       requestPage = 1;
       renderRequests();
     });
+    function updateDateBounds() {
+      requestDateFrom.max = requestDateTo.value;
+      requestDateTo.min = requestDateFrom.value;
+    }
     [requestDateFrom, requestDateTo].forEach((control) => control.addEventListener('change', () => {
+      updateDateBounds();
       requestPage = 1;
       renderRequests();
     }));
+    updateDateBounds();
     requestPreviousButton.addEventListener('click', () => {
       requestPage -= 1;
       renderRequests();

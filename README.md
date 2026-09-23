@@ -172,7 +172,6 @@ Run the seed command only once on a new database unless you intentionally want t
 
 - Add a real interactive park map and bench coordinate
 - Add CSRF protection and stronger production session/security settings
-- Add email notifications for request submission, approval, and deletion using mailgun
 - Add payment processing for adoption fees
 - Add image uploads for individual benches, need cloud storage
 - Add admin tools for editing bench metadata and managing locations
